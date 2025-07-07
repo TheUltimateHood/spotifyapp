@@ -47,6 +47,7 @@ module.exports = {
     hot: true,
     open: false,
     host: '0.0.0.0',
-    historyApiFallback: true
+    historyApiFallback: true,
+    allowedHosts: 'all'
   }
 };
