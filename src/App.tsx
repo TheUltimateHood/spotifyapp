@@ -21,7 +21,8 @@ if (Platform.OS !== 'web') {
 function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
   
-
+  console.log('App component loading, Platform.OS:', Platform.OS);
+  console.log('isPlayerReady:', isPlayerReady);
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
@@ -39,14 +40,18 @@ function App(): JSX.Element {
   }, []);
 
   const Provider = Platform.OS === 'web' ? WebMusicProvider : MusicProvider;
+  console.log('Using provider:', Provider.name);
 
   if (!isPlayerReady) {
+    console.log('Showing loading screen');
     return (
       <View style={styles.loadingContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
       </View>
     );
   }
+
+  console.log('Rendering main app');
 
   return (
     <Provider>
