@@ -1,6 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useMusicContext } from '../context/MusicContext';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+
+// Platform-specific imports
+let useMusicContext: any;
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+} else {
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+}
 
 interface PlayerControlsProps {
   mini: boolean;

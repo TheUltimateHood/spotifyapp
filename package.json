@@ -4,16 +4,18 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "react-native start",
+    "dev": "webpack serve --config webpack.config.js",
     "start": "react-native start",
     "android": "react-native run-android",
-    "ios": "react-native run-ios"
+    "ios": "react-native run-ios",
+    "build": "webpack --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@expo/webpack-config": "^19.0.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/cli": "^18.0.0",
     "@react-native/babel-preset": "^0.80.1",
@@ -22,6 +24,8 @@
     "@react-navigation/stack": "^7.4.2",
     "@types/react": "^19.1.8",
     "@types/react-native": "^0.72.8",
+    "babel-loader": "^10.0.0",
+    "html-webpack-plugin": "^5.6.3",
     "metro": "^0.82.5",
     "metro-react-native-babel-preset": "^0.77.0",
     "metro-react-native-babel-transformer": "^0.77.0",
@@ -39,6 +43,11 @@
     "react-native-slider": "^0.11.0",
     "react-native-track-player": "^4.1.1",
     "react-native-vector-icons": "^10.2.0",
-    "typescript": "^5.8.3"
+    "react-native-web": "^0.20.0",
+    "shaka-player": "^4.15.5",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   }
 }

@@ -1,33 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Platform, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
-import TrackPlayer from 'react-native-track-player';
 import HomeScreen from './screens/HomeScreen';
 import PlayerScreen from './screens/PlayerScreen';
+import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
-import { playbackService } from './services/playbackService';
 
 const Stack = createStackNavigator();
 
-// Register the playback service
-TrackPlayer.registerPlaybackService(() => playbackService);
+// Web-specific imports
+let TrackPlayer: any;
+if (Platform.OS !== 'web') {
+  TrackPlayer = require('react-native-track-player').default;
+  const { playbackService } = require('./services/playbackService');
+  TrackPlayer.registerPlaybackService(() => playbackService);
+}
 
 function App(): JSX.Element {
+  const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
+
   useEffect(() => {
-    const setupPlayer = async () => {
-      try {
-        await TrackPlayer.setupPlayer();
-      } catch (error) {
-        console.log('Error setting up player:', error);
-      }
-    };
-    
-    setupPlayer();
+    if (Platform.OS !== 'web') {
+      const setupPlayer = async () => {
+        try {
+          await TrackPlayer.setupPlayer();
+          setIsPlayerReady(true);
+        } catch (error) {
+          console.log('Error setting up player:', error);
+        }
+      };
+      
+      setupPlayer();
+    }
   }, []);
 
+  const Provider = Platform.OS === 'web' ? WebMusicProvider : MusicProvider;
+
+  if (!isPlayerReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
+      </View>
+    );
+  }
+
   return (
-    <MusicProvider>
+    <Provider>
       <NavigationContainer>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
         <Stack.Navigator
@@ -35,6 +55,7 @@ function App(): JSX.Element {
             headerStyle: { backgroundColor: '#1a1a1a' },
             headerTintColor: '#fff',
             headerTitleStyle: { fontWeight: 'bold' },
+            headerShadowVisible: false,
           }}
         >
           <Stack.Screen
@@ -49,8 +70,17 @@ function App(): JSX.Element {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </MusicProvider>
+    </Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default App;

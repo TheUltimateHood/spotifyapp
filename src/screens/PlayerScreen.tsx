@@ -6,17 +6,29 @@ import {
   SafeAreaView,
   Dimensions,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useMusicContext } from '../context/MusicContext';
 import PlayerControls from '../components/PlayerControls';
 import ProgressBar from '../components/ProgressBar';
+import VolumeControl from '../components/VolumeControl';
+import AudioVisualizer from '../components/AudioVisualizer';
+
+// Platform-specific imports
+let useMusicContext: any;
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+} else {
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+}
 
 const { width } = Dimensions.get('window');
 
 const PlayerScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { currentTrack } = useMusicContext();
+  const { currentTrack, isPlaying } = useMusicContext();
 
   if (!currentTrack) {
     return (
@@ -44,6 +56,10 @@ const PlayerScreen: React.FC = () => {
       <View style={styles.content}>
         <View style={styles.artworkContainer}>
           <View style={styles.artwork}>
+            <AudioVisualizer 
+              isPlaying={isPlaying} 
+              style={styles.visualizer}
+            />
             <Text style={styles.artworkPlaceholder}>♪</Text>
           </View>
         </View>
@@ -63,6 +79,10 @@ const PlayerScreen: React.FC = () => {
 
         <View style={styles.controlsContainer}>
           <PlayerControls mini={false} />
+        </View>
+        
+        <View style={styles.volumeContainer}>
+          <VolumeControl />
         </View>
       </View>
     </SafeAreaView>
@@ -125,6 +145,10 @@ const styles = StyleSheet.create({
     fontSize: 80,
     color: '#b3b3b3',
   },
+  visualizer: {
+    position: 'absolute',
+    bottom: 20,
+  },
   trackInfo: {
     alignItems: 'center',
     marginBottom: 40,
@@ -145,6 +169,10 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   controlsContainer: {
+    alignItems: 'center',
+  },
+  volumeContainer: {
+    marginTop: 20,
     alignItems: 'center',
   },
   emptyState: {

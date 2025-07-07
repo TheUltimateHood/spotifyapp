@@ -1,7 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Slider from 'react-native-slider';
-import { useMusicContext } from '../context/MusicContext';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+
+// Platform-specific imports
+let Slider: any;
+let useMusicContext: any;
+
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+  // For web, we'll create a custom slider
+} else {
+  Slider = require('react-native-slider').default;
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+}
 
 const ProgressBar: React.FC = () => {
   const { position, duration, seekTo } = useMusicContext();
@@ -16,19 +28,43 @@ const ProgressBar: React.FC = () => {
     seekTo(value);
   };
 
+  const WebSlider = () => (
+    <input
+      type="range"
+      min={0}
+      max={duration || 1}
+      value={position}
+      onChange={(e) => handleSeek(Number(e.target.value))}
+      style={{
+        width: '100%',
+        height: 6,
+        background: `linear-gradient(to right, #1db954 0%, #1db954 ${(position / (duration || 1)) * 100}%, #404040 ${(position / (duration || 1)) * 100}%, #404040 100%)`,
+        borderRadius: 3,
+        outline: 'none',
+        WebkitAppearance: 'none',
+        cursor: 'pointer',
+      }}
+      className="web-slider"
+    />
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.sliderContainer}>
-        <Slider
-          style={styles.slider}
-          minimumValue={0}
-          maximumValue={duration || 1}
-          value={position}
-          onSlidingComplete={handleSeek}
-          minimumTrackTintColor="#1db954"
-          maximumTrackTintColor="#404040"
-          thumbStyle={styles.thumb}
-        />
+        {Platform.OS === 'web' ? (
+          <WebSlider />
+        ) : (
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={duration || 1}
+            value={position}
+            onSlidingComplete={handleSeek}
+            minimumTrackTintColor="#1db954"
+            maximumTrackTintColor="#404040"
+            thumbStyle={styles.thumb}
+          />
+        )}
       </View>
       <View style={styles.timeContainer}>
         <Text style={styles.timeText}>{formatTime(position)}</Text>

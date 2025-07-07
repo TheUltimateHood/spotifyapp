@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,17 +11,50 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import DocumentPicker from 'react-native-document-picker';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { Track } from 'react-native-track-player';
-import { useMusicContext } from '../context/MusicContext';
 import TrackItem from '../components/TrackItem';
 import PlayerControls from '../components/PlayerControls';
+import SearchBar from '../components/SearchBar';
+import AudioVisualizer from '../components/AudioVisualizer';
+
+// Platform-specific imports
+let DocumentPicker: any;
+let useMusicContext: any;
+let Track: any;
+
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+  Track = {} as any; // Web doesn't need Track type from react-native-track-player
+} else {
+  DocumentPicker = require('react-native-document-picker').default;
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+  Track = require('react-native-track-player').Track;
+}
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { tracks, addTracks, currentTrack, isPlaying } = useMusicContext();
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredTracks, setFilteredTracks] = useState(tracks);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredTracks(tracks);
+    } else {
+      const filtered = tracks.filter(track => 
+        track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (track.album && track.album.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredTracks(filtered);
+    }
+  }, [searchQuery, tracks]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
 
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android') {
@@ -45,41 +78,80 @@ const HomeScreen: React.FC = () => {
     return true;
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const pickAudioFiles = async () => {
     try {
       setLoading(true);
       
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) {
-        Alert.alert('Permission Required', 'Storage permission is required to access music files.');
-        return;
+      if (Platform.OS === 'web') {
+        // Web file picker
+        if (!fileInputRef.current) {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'audio/*';
+          input.multiple = true;
+          input.style.display = 'none';
+          
+          input.onchange = (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            const files = Array.from(target.files || []);
+            
+            const newTracks = files.map((file, index) => ({
+              id: `track_${Date.now()}_${index}`,
+              url: URL.createObjectURL(file),
+              title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
+              artist: 'Unknown Artist',
+              album: 'Unknown Album',
+              file: file,
+            }));
+            
+            addTracks(newTracks);
+            Alert.alert('Success', `Added ${newTracks.length} track(s) to your library`);
+            setLoading(false);
+          };
+          
+          document.body.appendChild(input);
+          fileInputRef.current = input;
+        }
+        
+        fileInputRef.current.click();
+      } else {
+        // Native file picker
+        const hasPermission = await requestStoragePermission();
+        if (!hasPermission) {
+          Alert.alert('Permission Required', 'Storage permission is required to access music files.');
+          return;
+        }
+
+        const results = await DocumentPicker.pick({
+          type: [DocumentPicker.types.audio],
+          allowMultiSelection: true,
+        });
+
+        const newTracks = results.map((result, index) => ({
+          id: `track_${Date.now()}_${index}`,
+          url: result.uri,
+          title: result.name?.replace(/\.[^/.]+$/, '') || 'Unknown Track',
+          artist: 'Unknown Artist',
+          album: 'Unknown Album',
+          artwork: undefined,
+        }));
+
+        addTracks(newTracks);
+        Alert.alert('Success', `Added ${newTracks.length} track(s) to your library`);
       }
-
-      const results = await DocumentPicker.pick({
-        type: [DocumentPicker.types.audio],
-        allowMultiSelection: true,
-      });
-
-      const newTracks: Track[] = results.map((result, index) => ({
-        id: `track_${Date.now()}_${index}`,
-        url: result.uri,
-        title: result.name?.replace(/\.[^/.]+$/, '') || 'Unknown Track',
-        artist: 'Unknown Artist',
-        album: 'Unknown Album',
-        artwork: undefined,
-      }));
-
-      addTracks(newTracks);
-      Alert.alert('Success', `Added ${newTracks.length} track(s) to your library`);
     } catch (error) {
-      if (DocumentPicker.isCancel(error)) {
+      if (Platform.OS !== 'web' && DocumentPicker?.isCancel(error)) {
         console.log('User cancelled file picker');
       } else {
         console.error('Error picking files:', error);
         Alert.alert('Error', 'Failed to pick audio files. Please try again.');
       }
     } finally {
-      setLoading(false);
+      if (Platform.OS !== 'web') {
+        setLoading(false);
+      }
     }
   };
 
@@ -94,16 +166,19 @@ const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Your Music</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={pickAudioFiles}
-          disabled={loading}
-        >
-          <Text style={styles.addButtonText}>
-            {loading ? 'Loading...' : '+ Add Music'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Your Music</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={pickAudioFiles}
+            disabled={loading}
+          >
+            <Text style={styles.addButtonText}>
+              {loading ? 'Loading...' : '+ Add Music'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <SearchBar onSearch={handleSearch} />
       </View>
 
       {tracks.length === 0 ? (
@@ -113,20 +188,45 @@ const HomeScreen: React.FC = () => {
             Tap "Add Music" to choose audio files from your device
           </Text>
         </View>
+      ) : filteredTracks.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateTitle}>No Results Found</Text>
+          <Text style={styles.emptyStateText}>
+            Try searching with different keywords
+          </Text>
+        </View>
       ) : (
         <FlatList
-          data={tracks}
+          data={filteredTracks}
           renderItem={renderTrackItem}
           keyExtractor={(item) => item.id}
           style={styles.trackList}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.trackListContent}
         />
       )}
 
       {currentTrack && (
-        <View style={styles.miniPlayer}>
-          <PlayerControls mini={true} />
-        </View>
+        <TouchableOpacity 
+          style={styles.miniPlayer}
+          onPress={() => navigation.navigate('Player' as never)}
+          activeOpacity={0.9}
+        >
+          <View style={styles.miniPlayerContent}>
+            <View style={styles.miniPlayerLeft}>
+              <AudioVisualizer isPlaying={isPlaying} style={styles.miniVisualizer} />
+              <View style={styles.miniTrackInfo}>
+                <Text style={styles.miniTitle} numberOfLines={1}>
+                  {currentTrack.title}
+                </Text>
+                <Text style={styles.miniArtist} numberOfLines={1}>
+                  {currentTrack.artist}
+                </Text>
+              </View>
+            </View>
+            <PlayerControls mini={true} />
+          </View>
+        </TouchableOpacity>
       )}
     </SafeAreaView>
   );
@@ -138,11 +238,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#121212',
   },
   header: {
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
   title: {
     fontSize: 28,
@@ -182,11 +286,56 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  trackListContent: {
+    paddingBottom: 100,
+  },
   miniPlayer: {
     backgroundColor: '#282828',
-    padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#333',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  miniPlayerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  miniPlayerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  miniVisualizer: {
+    marginRight: 12,
+  },
+  miniTrackInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  miniTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  miniArtist: {
+    fontSize: 12,
+    color: '#b3b3b3',
   },
 });
 

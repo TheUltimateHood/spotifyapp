@@ -1,7 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Track } from 'react-native-track-player';
-import { useMusicContext } from '../context/MusicContext';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+
+// Platform-specific imports
+let useMusicContext: any;
+let Track: any;
+
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext, Track: WebTrack } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+  Track = WebTrack;
+} else {
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+  Track = require('react-native-track-player').Track;
+}
 
 interface TrackItemProps {
   track: Track;
