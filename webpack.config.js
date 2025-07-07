@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: './test-simple.js',
+  entry: './index.web.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -14,6 +14,11 @@ module.exports = {
     alias: {
       'react-native$': 'react-native-web',
       'react-native-vector-icons': 'react-native-vector-icons/dist',
+      'react-native-track-player': false,
+      'react-native-document-picker': false,
+      'react-native-permissions': false,
+      'react-native-fs': false,
+      'react-native-reanimated': 'react-native-web/dist/exports/Animated',
     }
   },
   module: {
@@ -28,7 +33,9 @@ module.exports = {
               ['@babel/preset-env', {
                 targets: 'defaults'
               }],
-              '@babel/preset-react',
+              ['@babel/preset-react', {
+                runtime: 'automatic'
+              }],
               '@babel/preset-typescript'
             ]
           }
