@@ -103,5 +103,11 @@
 </head>
 <body>
   <div id="root"></div>
+  <script>
+    // Polyfill for CommonJS modules
+    window.module = window.module || {};
+    window.exports = window.exports || {};
+    window.require = window.require || function() { return {}; };
+  </script>
 </body>
 </html>

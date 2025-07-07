@@ -5,10 +5,20 @@ module.exports = {
   mode: 'development',
   entry: './index.web.js',
   devtool: 'cheap-module-source-map',
+  target: 'web',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/',
+    library: {
+      type: 'module',
+    },
+    environment: {
+      module: true,
+    },
+  },
+  experiments: {
+    outputModule: true,
   },
   resolve: {
     extensions: ['.web.js', '.js', '.jsx', '.ts', '.tsx'],
@@ -36,9 +46,12 @@ module.exports = {
           options: {
             presets: [
               ['@babel/preset-env', {
-                targets: 'defaults'
+                targets: 'defaults',
+                modules: false
               }],
-              '@babel/preset-react',
+              ['@babel/preset-react', {
+                runtime: 'automatic'
+              }],
               '@babel/preset-typescript'
             ],
           },
@@ -53,6 +66,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html',
+      inject: 'body',
+      scriptLoading: 'defer'
     }),
   ],
   devServer: {

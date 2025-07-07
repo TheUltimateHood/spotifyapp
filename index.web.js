@@ -1,20 +1,15 @@
-import { AppRegistry } from 'react-native';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './src/App';
 
-console.log('Loading real music player app...');
+console.log('Loading music player...');
 
-// Register the app
-AppRegistry.registerComponent('MusicPlayerApp', () => App);
-
-// Run the app
-const rootTag = document.getElementById('root');
-console.log('Root element found:', rootTag);
-
-if (rootTag) {
-  AppRegistry.runApplication('MusicPlayerApp', {
-    rootTag: rootTag,
-  });
+// Web-specific mounting without AppRegistry
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container);
+  root.render(React.createElement(App));
   console.log('Music player mounted successfully');
 } else {
-  console.error('Root element not found');
+  console.error('Root container not found');
 }
