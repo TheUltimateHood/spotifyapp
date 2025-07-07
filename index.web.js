@@ -1,10 +1,10 @@
 import { AppRegistry } from 'react-native';
-import WebHomeScreen from './src/WebHomeScreen';
+import App from './src/App';
 
-console.log('Loading music player web app...');
+console.log('Loading real music player app...');
 
 // Register the app
-AppRegistry.registerComponent('MusicPlayerApp', () => WebHomeScreen);
+AppRegistry.registerComponent('MusicPlayerApp', () => App);
 
 // Run the app
 const rootTag = document.getElementById('root');

@@ -27,6 +27,7 @@ if (Platform.OS === 'web') {
   const { useMusicContext: webContext } = require('../context/WebMusicContext');
   useMusicContext = webContext;
   Track = {} as any; // Web doesn't need Track type from react-native-track-player
+  DocumentPicker = null; // Will use web file picker instead
 } else {
   DocumentPicker = require('react-native-document-picker').default;
   const { useMusicContext: nativeContext } = require('../context/MusicContext');

@@ -19,24 +19,35 @@ module.exports = {
       'react-native-document-picker': false,
       'react-native-permissions': false,
       'react-native-fs': false,
+      'react-native-gesture-handler': 'react-native-web',
+      'react-native-reanimated': 'react-native-web/dist/exports/Animated',
+      'react-native-safe-area-context': 'react-native-web',
+      'react-native-screens': 'react-native-web',
     },
+    fullySpecified: false,
   },
   module: {
     rules: [
       {
         test: /\.(js|jsx|ts|tsx)$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!(react-native|@react-native|react-native-.*|@react-navigation)\/).*/,
         use: {
           loader: 'babel-loader',
           options: {
             presets: [
-              '@babel/preset-env',
+              ['@babel/preset-env', {
+                targets: 'defaults'
+              }],
               '@babel/preset-react',
               '@babel/preset-typescript'
             ],
           },
         },
       },
+      {
+        test: /\.ttf$/,
+        type: 'asset/resource',
+      }
     ],
   },
   plugins: [
