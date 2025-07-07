@@ -15,6 +15,8 @@ import TrackItem from '../components/TrackItem';
 import PlayerControls from '../components/PlayerControls';
 import SearchBar from '../components/SearchBar';
 import AudioVisualizer from '../components/AudioVisualizer';
+import PlaylistModal from '../components/PlaylistModal';
+import AnimatedMusicNote from '../components/AnimatedMusicNote';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -34,10 +36,18 @@ if (Platform.OS === 'web') {
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { tracks, addTracks, currentTrack, isPlaying } = useMusicContext();
+  const context = useMusicContext();
+  const { tracks, addTracks, currentTrack, isPlaying, playlists, createPlaylist } = context;
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTracks, setFilteredTracks] = useState(tracks);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  
+  const handleCreatePlaylist = (name: string, trackIds: string[]) => {
+    if (createPlaylist) {
+      createPlaylist(name, trackIds);
+    }
+  };
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -168,21 +178,36 @@ const HomeScreen: React.FC = () => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Your Music</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={pickAudioFiles}
-            disabled={loading}
-          >
-            <Text style={styles.addButtonText}>
-              {loading ? 'Loading...' : '+ Add Music'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            {tracks.length > 0 && createPlaylist && (
+              <TouchableOpacity 
+                style={[styles.addButton, styles.playlistButton]} 
+                onPress={() => setShowPlaylistModal(true)}
+              >
+                <Text style={styles.addButtonText}>📋</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={pickAudioFiles}
+              disabled={loading}
+            >
+              <Text style={styles.addButtonText}>
+                {loading ? 'Loading...' : '+ Add Music'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <SearchBar onSearch={handleSearch} />
       </View>
 
       {tracks.length === 0 ? (
         <View style={styles.emptyState}>
+          <View style={styles.animatedNotesContainer}>
+            <AnimatedMusicNote delay={0} />
+            <AnimatedMusicNote delay={500} />
+            <AnimatedMusicNote delay={1000} />
+          </View>
           <Text style={styles.emptyStateTitle}>No Music Added</Text>
           <Text style={styles.emptyStateText}>
             Tap "Add Music" to choose audio files from your device
@@ -228,6 +253,15 @@ const HomeScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
       )}
+      
+      {createPlaylist && (
+        <PlaylistModal
+          visible={showPlaylistModal}
+          onClose={() => setShowPlaylistModal(false)}
+          onCreatePlaylist={handleCreatePlaylist}
+          tracks={tracks}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -248,6 +282,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -263,6 +301,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  playlistButton: {
+    marginRight: 10,
+    backgroundColor: '#404040',
   },
   emptyState: {
     flex: 1,
@@ -281,6 +323,13 @@ const styles = StyleSheet.create({
     color: '#b3b3b3',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  animatedNotesContainer: {
+    height: 100,
+    width: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   trackList: {
     flex: 1,

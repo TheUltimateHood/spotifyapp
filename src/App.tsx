@@ -21,7 +21,7 @@ if (Platform.OS !== 'web') {
 function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
   
-  console.log('App component rendered, Platform:', Platform.OS, 'isPlayerReady:', isPlayerReady);
+
 
   useEffect(() => {
     if (Platform.OS !== 'web') {

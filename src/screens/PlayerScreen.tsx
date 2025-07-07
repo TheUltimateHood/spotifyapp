@@ -13,6 +13,7 @@ import PlayerControls from '../components/PlayerControls';
 import ProgressBar from '../components/ProgressBar';
 import VolumeControl from '../components/VolumeControl';
 import AudioVisualizer from '../components/AudioVisualizer';
+import ShuffleRepeatControls from '../components/ShuffleRepeatControls';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -28,7 +29,8 @@ const { width } = Dimensions.get('window');
 
 const PlayerScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { currentTrack, isPlaying } = useMusicContext();
+  const context = useMusicContext();
+  const { currentTrack, isPlaying, shuffleMode, repeatMode, toggleShuffle, toggleRepeat } = context;
 
   if (!currentTrack) {
     return (
@@ -80,6 +82,15 @@ const PlayerScreen: React.FC = () => {
         <View style={styles.controlsContainer}>
           <PlayerControls mini={false} />
         </View>
+        
+        {toggleShuffle && toggleRepeat && (
+          <ShuffleRepeatControls
+            shuffleMode={shuffleMode || false}
+            repeatMode={repeatMode || 'off'}
+            onToggleShuffle={toggleShuffle}
+            onToggleRepeat={toggleRepeat}
+          />
+        )}
         
         <View style={styles.volumeContainer}>
           <VolumeControl />
