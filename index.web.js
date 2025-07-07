@@ -1,10 +1,10 @@
 import { AppRegistry } from 'react-native';
-import WebApp from './src/WebApp';
+import WebHomeScreen from './src/WebHomeScreen';
 
-console.log('Loading web music app...');
+console.log('Loading music player web app...');
 
 // Register the app
-AppRegistry.registerComponent('MusicPlayerApp', () => WebApp);
+AppRegistry.registerComponent('MusicPlayerApp', () => WebHomeScreen);
 
 // Run the app
 const rootTag = document.getElementById('root');
@@ -14,7 +14,7 @@ if (rootTag) {
   AppRegistry.runApplication('MusicPlayerApp', {
     rootTag: rootTag,
   });
-  console.log('Web app mounted successfully');
+  console.log('Music player mounted successfully');
 } else {
   console.error('Root element not found');
 }

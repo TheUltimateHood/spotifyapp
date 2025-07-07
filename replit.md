@@ -86,6 +86,9 @@ Changelog:
 - July 06, 2025: Audio playback service configured
 - July 06, 2025: Home and Player screens created
 - July 06, 2025: File picker and permissions setup
+- July 07, 2025: Web preview implementation started
+- July 07, 2025: Fixed webpack configuration for React Native Web compatibility
+- July 07, 2025: Created simplified web version with file upload and controls
 ```
 
 ## User Preferences
