@@ -1,10 +1,15 @@
-import { AppRegistry } from 'react-native';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './src/App';
 
-// Register the app
-AppRegistry.registerComponent('MusicPlayerApp', () => App);
+console.log('Entry point loaded');
 
-// Run the app
-AppRegistry.runApplication('MusicPlayerApp', {
-  rootTag: document.getElementById('root'),
-});
+// Web-specific rendering
+const container = document.getElementById('root');
+if (container) {
+  console.log('Container found, rendering app...');
+  const root = createRoot(container);
+  root.render(<App />);
+} else {
+  console.error('Root container not found');
+}

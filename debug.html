@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+    <style>
+        body { background: #121212; color: white; font-family: Arial; }
+        .debug-info { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div id="root">Loading...</div>
+    <div class="debug-info">
+        <h3>Debug Information</h3>
+        <div id="debug-output"></div>
+    </div>
+    
+    <script>
+        console.log('Debug page loaded');
+        
+        // Test if basic React DOM works
+        const debugOutput = document.getElementById('debug-output');
+        debugOutput.innerHTML = '<p>Basic HTML works</p>';
+        
+        // Test bundle loading
+        const script = document.createElement('script');
+        script.src = '/bundle.js';
+        script.onload = () => {
+            console.log('Bundle loaded successfully');
+            debugOutput.innerHTML += '<p>Bundle loaded successfully</p>';
+        };
+        script.onerror = (error) => {
+            console.error('Bundle failed to load:', error);
+            debugOutput.innerHTML += '<p>Bundle failed to load</p>';
+        };
+        document.head.appendChild(script);
+        
+        // Wait a bit and check if React mounted
+        setTimeout(() => {
+            const root = document.getElementById('root');
+            if (root.innerHTML === 'Loading...') {
+                debugOutput.innerHTML += '<p>React app did not mount</p>';
+            } else {
+                debugOutput.innerHTML += '<p>React app mounted successfully</p>';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
