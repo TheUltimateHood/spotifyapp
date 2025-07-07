@@ -15,6 +15,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
     "@expo/webpack-config": "^19.0.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/cli": "^18.0.0",

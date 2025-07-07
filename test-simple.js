@@ -1,23 +1,26 @@
-// Simple test to check basic React rendering
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { View, Text } from 'react-native';
-
-console.log('Test script loaded');
+console.log('Simple test starting...');
 
 function TestApp() {
-  return (
-    <View style={{ flex: 1, backgroundColor: '#121212', justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: 'white', fontSize: 24 }}>Hello World</Text>
-    </View>
-  );
+  return React.createElement('div', { 
+    style: { 
+      backgroundColor: '#121212', 
+      color: 'white', 
+      height: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      fontSize: '24px'
+    } 
+  }, 'Music Player - Test Version');
 }
 
-const container = document.getElementById('root');
-if (container) {
-  console.log('Container found, rendering test app...');
-  const root = createRoot(container);
-  root.render(<TestApp />);
+console.log('Test app defined');
+
+// Simple mounting without AppRegistry
+const root = document.getElementById('root');
+if (root) {
+  console.log('Root found, rendering...');
+  ReactDOM.render(React.createElement(TestApp), root);
 } else {
-  console.error('Root container not found');
+  console.error('Root element not found');
 }
