@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,20 @@ import {
   SafeAreaView,
   Platform,
   Switch,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { 
-  Settings, 
-  Download,
+  Volume2, 
+  Trash2,
+  Database,
   Info,
-  ChevronRight 
+  ChevronRight,
+  Repeat,
+  Shuffle,
+  Download
 } from 'lucide-react';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -29,38 +36,56 @@ const SettingsScreen: React.FC = () => {
   const context = useMusicContext();
   const { 
     tracks, 
-    clearTracks 
+    clearTracks,
+    shuffleMode,
+    repeatMode,
+    toggleShuffle,
+    toggleRepeat,
+    removeTrack,
+    volume,
+    setVolume
   } = context;
 
-  const settingsItems = [
-    {
-      icon: <Download size={20} color="#fff" />,
-      title: 'Storage',
-      subtitle: `${tracks.length} songs in library`,
-      onPress: () => {},
-      showChevron: true,
-    },
-    {
-      icon: <Download size={20} color="#fff" />,
-      title: 'Clear Library',
-      subtitle: 'Remove all songs from library',
-      onPress: clearTracks,
-      showChevron: true,
-    },
-    {
-      icon: <Info size={20} color="#fff" />,
-      title: 'About',
-      subtitle: 'Modern Music Player v1.0.0',
-      onPress: () => {},
-      showChevron: true,
-    },
-  ];
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
-  const renderSettingItem = (item: any, index: number) => (
+  const handleClearTracks = () => {
+    setShowClearConfirmation(true);
+  };
+
+  const confirmClearTracks = () => {
+    clearTracks();
+    setShowClearConfirmation(false);
+    Alert.alert('Success', 'All songs have been removed from your library');
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getLibrarySize = () => {
+    // Estimate library size based on track count (approximate 4MB per track)
+    const estimatedSize = tracks.length * 4 * 1024 * 1024;
+    return formatFileSize(estimatedSize);
+  };
+
+  const getRepeatModeText = () => {
+    switch (repeatMode) {
+      case 'off': return 'Off';
+      case 'all': return 'All';
+      case 'one': return 'One';
+      default: return 'Off';
+    }
+  };
+
+  const renderSettingItem = (item: any) => (
     <TouchableOpacity 
-      key={index} 
       style={styles.settingItem} 
       onPress={item.onPress}
+      disabled={item.disabled}
     >
       <View style={styles.settingLeft}>
         <View style={styles.iconContainer}>
@@ -75,10 +100,13 @@ const SettingsScreen: React.FC = () => {
         {item.showSwitch && (
           <Switch
             value={item.switchValue}
-            onValueChange={item.onPress}
+            onValueChange={item.onToggle}
             trackColor={{ false: '#767577', true: '#1db954' }}
             thumbColor={item.switchValue ? '#fff' : '#f4f3f4'}
           />
+        )}
+        {item.showValue && (
+          <Text style={styles.settingValue}>{item.value}</Text>
         )}
         {item.showChevron && (
           <ChevronRight size={16} color="#666" />
@@ -93,31 +121,102 @@ const SettingsScreen: React.FC = () => {
         <Text style={styles.title}>Settings</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Playback Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Playback</Text>
-          {settingsItems.slice(0, 3).map(renderSettingItem)}
+          
+          {renderSettingItem({
+            icon: <Shuffle size={20} color="#fff" />,
+            title: 'Shuffle',
+            subtitle: 'Randomize playback order',
+            showSwitch: true,
+            switchValue: shuffleMode,
+            onToggle: toggleShuffle,
+          })}
+          
+          {renderSettingItem({
+            icon: <Repeat size={20} color="#fff" />,
+            title: 'Repeat',
+            subtitle: 'Control repeat behavior',
+            showValue: true,
+            value: getRepeatModeText(),
+            onPress: toggleRepeat,
+          })}
+          
+          {Platform.OS === 'web' && renderSettingItem({
+            icon: <Volume2 size={20} color="#fff" />,
+            title: 'Volume',
+            subtitle: `Audio output level: ${Math.round(volume * 100)}%`,
+            showValue: true,
+            value: `${Math.round(volume * 100)}%`,
+            onPress: () => {},
+            disabled: true,
+          })}
         </View>
 
+        {/* Storage Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Storage</Text>
-          {settingsItems.slice(3, 4).map((item, index) => renderSettingItem(item, index + 3))}
+          
+          {renderSettingItem({
+            icon: <Database size={20} color="#fff" />,
+            title: 'Library Size',
+            subtitle: `${tracks.length} songs • ${getLibrarySize()}`,
+            onPress: () => {},
+            disabled: true,
+          })}
           
           {tracks.length > 0 && (
             <TouchableOpacity 
               style={[styles.settingItem, styles.clearButton]} 
-              onPress={clearTracks}
+              onPress={handleClearTracks}
             >
-              <Text style={styles.clearButtonText}>Clear All Music</Text>
+              <View style={styles.settingLeft}>
+                <View style={[styles.iconContainer, styles.destructiveIcon]}>
+                  <Trash2 size={20} color="#fff" />
+                </View>
+                <View style={styles.textContainer}>
+                  <Text style={styles.clearButtonText}>Clear All Music</Text>
+                  <Text style={styles.clearButtonSubtitle}>Remove all songs from library</Text>
+                </View>
+              </View>
+              <ChevronRight size={16} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
 
+        {/* App Info Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Info</Text>
-          {settingsItems.slice(4).map((item, index) => renderSettingItem(item, index + 4))}
+          
+          {renderSettingItem({
+            icon: <Info size={20} color="#fff" />,
+            title: 'Version',
+            subtitle: 'Modern Music Player v1.0.0',
+            onPress: () => {},
+            disabled: true,
+          })}
+          
+          {Platform.OS === 'web' && renderSettingItem({
+            icon: <Download size={20} color="#fff" />,
+            title: 'Platform',
+            subtitle: 'Web Application',
+            onPress: () => {},
+            disabled: true,
+          })}
         </View>
-      </View>
+      </ScrollView>
+
+      <ConfirmationModal
+        visible={showClearConfirmation}
+        title="Clear All Music"
+        message="This action will permanently remove all songs from your library. This cannot be undone."
+        confirmationText="Delete all songs in library"
+        onConfirm={confirmClearTracks}
+        onCancel={() => setShowClearConfirmation(false)}
+        destructive={true}
+      />
     </SafeAreaView>
   );
 };
@@ -176,6 +275,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  destructiveIcon: {
+    backgroundColor: '#ff4444',
+  },
   textContainer: {
     flex: 1,
   },
@@ -193,15 +295,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  settingValue: {
+    fontSize: 14,
+    color: '#1db954',
+    fontWeight: '600',
+    marginRight: 8,
+  },
   clearButton: {
-    backgroundColor: '#ff4444',
-    justifyContent: 'center',
+    backgroundColor: '#2a1a1a',
+    borderWidth: 1,
+    borderColor: '#ff4444',
   },
   clearButtonText: {
-    color: '#fff',
+    color: '#ff4444',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+  },
+  clearButtonSubtitle: {
+    fontSize: 14,
+    color: '#ff6666',
+    marginTop: 2,
   },
 });
 

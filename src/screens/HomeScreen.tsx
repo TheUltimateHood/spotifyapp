@@ -107,26 +107,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
         if (!fileInputRef.current) {
           const input = document.createElement('input');
           input.type = 'file';
-          input.accept = 'audio/*';
+          input.accept = 'audio/*,video/mp4,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4';
           input.multiple = true;
           input.style.display = 'none';
           
-          input.onchange = (e: Event) => {
+          input.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const files = Array.from(target.files || []);
             
-            const newTracks = files.map((file, index) => ({
-              id: `track_${Date.now()}_${index}`,
-              url: URL.createObjectURL(file),
-              title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
-              artist: 'Unknown Artist',
-              album: 'Unknown Album',
-              file: file,
-            }));
-            
-            addTracks(newTracks);
-            Alert.alert('Success', `Added ${newTracks.length} track(s) to your library`);
-            setLoading(false);
+            try {
+              const { processMultipleAudioFiles } = await import('../utils/audioConverter');
+              const { successful, failed } = await processMultipleAudioFiles(files);
+              
+              if (successful.length > 0) {
+                addTracks(successful);
+              }
+              
+              let message = '';
+              if (successful.length > 0) {
+                message += `Added ${successful.length} track(s) to your library`;
+              }
+              if (failed.length > 0) {
+                message += successful.length > 0 ? '\n' : '';
+                message += `Failed to process ${failed.length} file(s): ${failed.map(f => f.file.name).join(', ')}`;
+              }
+              
+              Alert.alert(successful.length > 0 ? 'Success' : 'Error', message);
+            } catch (error) {
+              console.error('Error processing files:', error);
+              Alert.alert('Error', 'Failed to process audio files. Please try again.');
+            } finally {
+              setLoading(false);
+            }
           };
           
           document.body.appendChild(input);
@@ -143,7 +155,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
         }
 
         const results = await DocumentPicker.pick({
-          type: [DocumentPicker.types.audio],
+          type: [
+            DocumentPicker.types.audio,
+            'video/mp4',
+            'audio/mp4',
+            'audio/mpeg',
+            'audio/wav',
+            'audio/flac',
+            'audio/ogg',
+            'audio/m4a',
+            'audio/aac',
+            'audio/wma',
+            'public.audio'
+          ],
           allowMultiSelection: true,
         });
 

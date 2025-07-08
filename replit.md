@@ -95,6 +95,14 @@ Changelog:
 - July 08, 2025: Implemented green-black color scheme throughout the app
 - July 08, 2025: Created ModernCard and ModernButton components for consistent design
 - July 08, 2025: Added Playlists tab to bottom navigation
+- July 08, 2025: Enhanced file type support - now accepts MP4, OGG, WMA, and all audio formats
+- July 08, 2025: Added audio converter utility for MP4 video to audio extraction
+- July 08, 2025: Fixed iPad "audio recording" file type detection issue with expanded MIME types
+- July 08, 2025: Completely redesigned Settings screen with categorized sections
+- July 08, 2025: Added confirmation modal with typed confirmation for dangerous actions
+- July 08, 2025: Implemented individual track deletion with swipe menu
+- July 08, 2025: Added storage management with library size display and clear functionality
+- July 08, 2025: Removed About section, reorganized settings under Playback, Storage, App Info
 ```
 
 ## User Preferences
