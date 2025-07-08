@@ -5,6 +5,7 @@ import { StatusBar } from 'react-native';
 import NewHomeScreen from './screens/NewHomeScreen';
 import SearchScreen from './screens/SearchScreen';
 import LibraryScreen from './screens/LibraryScreen';
+import PlaylistsScreen from './screens/PlaylistsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlayerScreen from './screens/PlayerScreen';
 import BottomNavigation from './components/BottomNavigation';
@@ -86,6 +87,8 @@ function App(): JSX.Element {
         return <SearchScreen onTrackSelect={handleTrackSelect} />;
       case 'Library':
         return <LibraryScreen onTrackSelect={handleTrackSelect} />;
+      case 'Playlists':
+        return <PlaylistsScreen onTrackSelect={handleTrackSelect} />;
       case 'Settings':
         return <SettingsScreen />;
       default:

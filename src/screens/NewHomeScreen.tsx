@@ -134,15 +134,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#1db954', // GREEN BORDER
   },
   title: {
-    fontSize: 48, // MUCH LARGER TITLE
-    fontWeight: '900',
-    color: '#1db954', // BRIGHT GREEN
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#1db954',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 20, // BIGGER SUBTITLE
-    color: '#ffffff', // WHITE SUBTITLE
-    fontWeight: '600',
+    fontSize: 16,
+    color: '#b3b3b3',
+    fontWeight: '500',
   },
   content: {
     paddingHorizontal: 20,

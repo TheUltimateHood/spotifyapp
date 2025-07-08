@@ -10,9 +10,6 @@ import {
 } from 'react-native';
 import { 
   Settings, 
-  Volume2, 
-  Shuffle, 
-  Repeat, 
   Download,
   Info,
   ChevronRight 
@@ -32,36 +29,10 @@ const SettingsScreen: React.FC = () => {
   const context = useMusicContext();
   const { 
     tracks, 
-    shuffleMode, 
-    repeatMode, 
-    toggleShuffle, 
-    toggleRepeat,
     clearTracks 
   } = context;
 
   const settingsItems = [
-    {
-      icon: <Volume2 size={20} color="#fff" />,
-      title: 'Audio Quality',
-      subtitle: 'High quality streaming',
-      onPress: () => {},
-      showChevron: true,
-    },
-    {
-      icon: <Shuffle size={20} color="#fff" />,
-      title: 'Shuffle Mode',
-      subtitle: shuffleMode ? 'On' : 'Off',
-      onPress: toggleShuffle,
-      showSwitch: true,
-      switchValue: shuffleMode || false,
-    },
-    {
-      icon: <Repeat size={20} color="#fff" />,
-      title: 'Repeat Mode',
-      subtitle: repeatMode === 'off' ? 'Off' : repeatMode === 'all' ? 'All' : 'One',
-      onPress: toggleRepeat,
-      showChevron: true,
-    },
     {
       icon: <Download size={20} color="#fff" />,
       title: 'Storage',
@@ -70,9 +41,16 @@ const SettingsScreen: React.FC = () => {
       showChevron: true,
     },
     {
+      icon: <Download size={20} color="#fff" />,
+      title: 'Clear Library',
+      subtitle: 'Remove all songs from library',
+      onPress: clearTracks,
+      showChevron: true,
+    },
+    {
       icon: <Info size={20} color="#fff" />,
       title: 'About',
-      subtitle: 'Version 1.0.0',
+      subtitle: 'Modern Music Player v1.0.0',
       onPress: () => {},
       showChevron: true,
     },
@@ -147,7 +125,7 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000',
   },
   header: {
     paddingTop: 20,

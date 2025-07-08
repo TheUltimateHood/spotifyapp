@@ -12,6 +12,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
     { id: 'Home', label: 'Home', icon: Home },
     { id: 'Search', label: 'Search', icon: Search },
     { id: 'Library', label: 'Library', icon: ListMusic },
+    { id: 'Playlists', label: 'Playlists', icon: ListMusic },
     { id: 'Settings', label: 'Settings', icon: Settings },
   ];
 
@@ -45,22 +46,22 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#000',
+    backgroundColor: '#1a1a1a',
     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#282828',
+    borderTopColor: '#1db954',
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   tabLabel: {
     fontSize: 10,
     color: '#b3b3b3',
-    marginTop: 4,
+    marginTop: 2,
     fontWeight: '500',
   },
   tabLabelActive: {
