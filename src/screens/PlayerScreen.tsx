@@ -27,8 +27,12 @@ if (Platform.OS === 'web') {
 
 const { width } = Dimensions.get('window');
 
-const PlayerScreen: React.FC = () => {
-  const navigation = useNavigation();
+interface PlayerScreenProps {
+  navigation?: any;
+}
+
+const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
+  const navigation = Platform.OS === 'web' ? navProp : useNavigation();
   const context = useMusicContext();
   const { currentTrack, isPlaying, shuffleMode, repeatMode, toggleShuffle, toggleRepeat } = context;
 

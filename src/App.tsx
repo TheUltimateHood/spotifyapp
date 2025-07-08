@@ -1,25 +1,34 @@
+
 import React, { useEffect, useState } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
 import HomeScreen from './screens/HomeScreen';
 import PlayerScreen from './screens/PlayerScreen';
 import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
 
-const Stack = createStackNavigator();
-
 // Web-specific imports
 let TrackPlayer: any;
+let NavigationContainer: any;
+let createStackNavigator: any;
+
 if (Platform.OS !== 'web') {
   TrackPlayer = require('react-native-track-player').default;
   const { playbackService } = require('./services/playbackService');
   TrackPlayer.registerPlaybackService(() => playbackService);
+  
+  // Import navigation for native
+  const navigation = require('@react-navigation/native');
+  const stack = require('@react-navigation/stack');
+  NavigationContainer = navigation.NavigationContainer;
+  createStackNavigator = stack.createStackNavigator;
 }
+
+const Stack = Platform.OS !== 'web' ? createStackNavigator() : null;
 
 function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
+  const [currentScreen, setCurrentScreen] = useState('Home');
   
   console.log('App component loading, Platform.OS:', Platform.OS);
   console.log('isPlayerReady:', isPlayerReady);
@@ -53,6 +62,21 @@ function App(): JSX.Element {
 
   console.log('Rendering main app');
 
+  // Web version without React Navigation
+  if (Platform.OS === 'web') {
+    return (
+      <Provider>
+        <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
+        {currentScreen === 'Home' ? (
+          <HomeScreen navigation={{ navigate: (screen: string) => setCurrentScreen(screen) }} />
+        ) : (
+          <PlayerScreen navigation={{ goBack: () => setCurrentScreen('Home') }} />
+        )}
+      </Provider>
+    );
+  }
+
+  // Native version with React Navigation
   return (
     <Provider>
       <NavigationContainer>

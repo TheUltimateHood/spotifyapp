@@ -35,8 +35,12 @@ if (Platform.OS === 'web') {
   Track = require('react-native-track-player').Track;
 }
 
-const HomeScreen: React.FC = () => {
-  const navigation = useNavigation();
+interface HomeScreenProps {
+  navigation?: any;
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
+  const navigation = Platform.OS === 'web' ? navProp : useNavigation();
   const context = useMusicContext();
   const { tracks, addTracks, currentTrack, isPlaying, playlists, createPlaylist } = context;
   const [loading, setLoading] = useState(false);
