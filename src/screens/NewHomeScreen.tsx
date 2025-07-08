@@ -32,6 +32,15 @@ const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onTrackSelect }) => {
   // Get recently played tracks (last 5)
   const recentTracks = tracks.slice(-5).reverse();
 
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
+  };
+
   const renderTrackItem = ({ item }: { item: any }) => (
     <TrackItem
       track={item}
@@ -72,7 +81,7 @@ const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onTrackSelect }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Good evening</Text>
+        <Text style={styles.title}>{getGreeting()}</Text>
         <Text style={styles.subtitle}>Welcome back to your music</Text>
       </View>
 
@@ -126,23 +135,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000', // DRAMATIC BLACK BACKGROUND
   },
   header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: '#1a1a1a',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#333',
+    paddingTop: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    backgroundColor: '#000000',
   },
   title: {
-    fontSize: Platform.OS === 'web' ? 28 : 24,
-    fontWeight: '700',
-    color: '#1db954',
-    marginBottom: 4,
+    fontSize: Platform.OS === 'web' ? 32 : 28,
+    fontWeight: '800',
+    color: '#ffffff',
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: Platform.OS === 'web' ? 14 : 16,
+    fontSize: Platform.OS === 'web' ? 16 : 18,
     color: '#b3b3b3',
-    fontWeight: '500',
+    fontWeight: '400',
+    opacity: 0.8,
   },
   content: {
     paddingHorizontal: 20,
