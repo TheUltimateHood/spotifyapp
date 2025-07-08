@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
-import { Home, Search, ListMusic, Settings } from 'lucide-react';
+import { Home, Search, ListMusic, Settings, Music2 } from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -11,7 +11,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
   const tabs = [
     { id: 'Home', label: 'Home', icon: Home },
     { id: 'Search', label: 'Search', icon: Search },
-    { id: 'Library', label: 'Library', icon: ListMusic },
+    { id: 'Library', label: 'Library', icon: Music2 },
     { id: 'Playlists', label: 'Playlists', icon: ListMusic },
     { id: 'Settings', label: 'Settings', icon: Settings },
   ];
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#1db954',
+    borderTopWidth: 0.5,
+    borderTopColor: '#333',
   },
   tab: {
     flex: 1,

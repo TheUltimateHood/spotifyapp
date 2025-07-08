@@ -129,18 +129,18 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: '#1a1a1a', // DARKER HEADER
-    borderBottomWidth: 3,
-    borderBottomColor: '#1db954', // GREEN BORDER
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333',
   },
   title: {
-    fontSize: 32,
+    fontSize: Platform.OS === 'web' ? 28 : 24,
     fontWeight: '700',
     color: '#1db954',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 14 : 16,
     color: '#b3b3b3',
     fontWeight: '500',
   },
