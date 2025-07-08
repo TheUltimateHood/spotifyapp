@@ -41,14 +41,15 @@ const VolumeControl: React.FC = () => {
         value={volume}
         onChange={(e) => handleVolumeChange(Number(e.target.value))}
         style={{
-          width: 100,
-          height: 4,
-          background: `linear-gradient(to right, #1db954 0%, #1db954 ${volume * 100}%, #404040 ${volume * 100}%, #404040 100%)`,
-          borderRadius: 2,
+          width: 120,
+          height: 6,
+          background: `linear-gradient(to right, #1ed760 0%, #1db954 ${volume * 100}%, #404040 ${volume * 100}%, #404040 100%)`,
+          borderRadius: 3,
           outline: 'none',
           WebkitAppearance: 'none',
           cursor: 'pointer',
-          marginLeft: 8,
+          marginLeft: 12,
+          transition: 'all 0.2s ease',
         }}
         className="web-slider volume-slider"
       />
@@ -77,21 +78,39 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    padding: 12,
+    backgroundColor: '#282828',
+    borderRadius: 12,
+    marginHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   webSliderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
+    padding: 12,
+    backgroundColor: '#282828',
+    borderRadius: 12,
+    marginHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   volumeIcon: {
-    fontSize: 20,
+    fontSize: 22,
     marginHorizontal: 8,
   },
   volumeButton: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#1db954',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontWeight: '600',
   },
 });
 

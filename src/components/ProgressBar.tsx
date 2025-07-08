@@ -28,25 +28,61 @@ const ProgressBar: React.FC = () => {
     seekTo(value);
   };
 
-  const WebSlider = () => (
-    <input
-      type="range"
-      min={0}
-      max={duration || 1}
-      value={position}
-      onChange={(e) => handleSeek(Number(e.target.value))}
-      style={{
-        width: '100%',
-        height: 6,
-        background: `linear-gradient(to right, #1db954 0%, #1db954 ${(position / (duration || 1)) * 100}%, #404040 ${(position / (duration || 1)) * 100}%, #404040 100%)`,
-        borderRadius: 3,
-        outline: 'none',
-        WebkitAppearance: 'none',
-        cursor: 'pointer',
-      }}
-      className="web-slider"
-    />
-  );
+  const WebSlider = () => {
+    const progress = (position / (duration || 1)) * 100;
+    
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const newPosition = (clickX / rect.width) * (duration || 1);
+      handleSeek(newPosition);
+    };
+
+    return (
+      <div 
+        onClick={handleProgressClick}
+        style={{
+          width: '100%',
+          height: 8,
+          backgroundColor: '#404040',
+          borderRadius: 4,
+          cursor: 'pointer',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: `${progress}%`,
+            background: 'linear-gradient(90deg, #1ed760, #1db954)',
+            borderRadius: 4,
+            transition: 'width 0.1s ease',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: `${progress}%`,
+            transform: 'translate(-50%, -50%)',
+            width: 12,
+            height: 12,
+            backgroundColor: '#ffffff',
+            borderRadius: '50%',
+            boxShadow: '0 2px 8px rgba(29, 185, 84, 0.4)',
+            opacity: 0.9,
+            transition: 'opacity 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.9'}
+        />
+      </div>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -76,27 +112,35 @@ const ProgressBar: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
   },
   sliderContainer: {
-    marginBottom: 8,
+    marginBottom: 12,
+    paddingVertical: 4,
   },
   slider: {
     width: '100%',
     height: 40,
   },
   thumb: {
-    width: 15,
-    height: 15,
-    backgroundColor: '#1db954',
+    width: 16,
+    height: 16,
+    backgroundColor: '#ffffff',
+    shadowColor: '#1db954',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
   },
   timeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 4,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#b3b3b3',
+    fontWeight: '500',
   },
 });
 
