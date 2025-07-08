@@ -208,7 +208,7 @@ class LocAnalyzer:
                 return 0
 
     def analyze_directory(self, directory: str) -> Tuple[List[FileStats], Dict]:
-        """Analyze directory and return file stats and summary"""
+        """Analyze directory recursively and return file stats and summary"""
         file_stats = []
         summary = {
             'total_files': 0,
@@ -219,10 +219,14 @@ class LocAnalyzer:
             'unknown_lines': 0,
             'languages': Counter(),
             'extensions': Counter(),
+            'directories_scanned': 0,
         }
         
+        # Recursively walk through ALL subdirectories
         for root, dirs, files in os.walk(directory):
-            # Filter out excluded directories
+            summary['directories_scanned'] += 1
+            
+            # Filter out excluded directories in-place to prevent traversing them
             dirs[:] = [d for d in dirs if not self.should_exclude_dir(d)]
             
             for file in files:
@@ -231,6 +235,10 @@ class LocAnalyzer:
                 
                 file_path = os.path.join(root, file)
                 try:
+                    # Skip if file is not readable
+                    if not os.access(file_path, os.R_OK):
+                        continue
+                        
                     lines = self.count_lines(file_path)
                     language, is_code = self.get_language(file_path)
                     ext = Path(file_path).suffix.lower() or 'no extension'
@@ -258,6 +266,7 @@ class LocAnalyzer:
                         summary['unknown_lines'] += lines
                         
                 except Exception as e:
+                    # Skip files that can't be processed
                     continue
         
         return file_stats, summary
@@ -339,6 +348,7 @@ class LocTUI:
         
         # Summary stats
         stats = [
+            f"Directories Scanned: {self.summary['directories_scanned']:,}",
             f"Total Files: {self.summary['total_files']:,}",
             f"Code Files: {self.summary['code_files']:,}",
             f"Unknown Files: {self.summary['unknown_files']:,}",
@@ -557,69 +567,83 @@ class LocTUI:
             stdscr.getch()
 
     def run(self, stdscr):
-        curses.curs_set(0)  # Hide cursor
-        self.init_colors()
-        stdscr.keypad(True)
-        
-        while True:
-            stdscr.clear()
-            h, w = stdscr.getmaxyx()
+        try:
+            curses.curs_set(0)  # Hide cursor
+            self.init_colors()
+            stdscr.keypad(True)
+            stdscr.timeout(100)  # Add timeout to prevent hanging
             
-            if self.current_screen == 'file_list':
-                self.draw_file_list(stdscr)
-                key = stdscr.getch()
-                self.handle_file_list_input(key)
-                continue
-            
-            # Main screen
-            self.draw_header(stdscr)
-            
-            menu_start = 4
-            self.draw_menu(stdscr, menu_start)
-            
-            summary_start = menu_start + 10
-            if summary_start < h - 8:
-                self.draw_summary(stdscr, summary_start)
-            
-            # Instructions
-            stdscr.addstr(h-2, 2, "Use ↑/↓ to navigate, Enter to select, Q to quit")
-            
-            stdscr.refresh()
-            
-            key = stdscr.getch()
-            
-            if key == ord('q') or key == ord('Q'):
-                break
-            elif key == curses.KEY_UP and self.selected_index > 0:
-                self.selected_index -= 1
-            elif key == curses.KEY_DOWN and self.selected_index < 6:
-                self.selected_index += 1
-            elif key == ord('\n') or key == ord(' '):
-                if self.selected_index == 0:  # Analyze
-                    self.analyze_directory(stdscr)
-                elif self.selected_index == 1:  # Change directory
-                    self.change_directory(stdscr)
-                elif self.selected_index == 2:  # Summary (already shown)
-                    pass
-                elif self.selected_index == 3:  # File list
-                    self.current_screen = 'file_list'
-                elif self.selected_index == 4:  # By language (same as summary for now)
-                    pass
-                elif self.selected_index == 5:  # Export
-                    self.export_results(stdscr)
-                elif self.selected_index == 6:  # Quit
-                    break
-            elif key >= ord('1') and key <= ord('6'):
-                self.selected_index = key - ord('1')
-                # Auto-execute
-                if self.selected_index == 0:
-                    self.analyze_directory(stdscr)
-                elif self.selected_index == 1:
-                    self.change_directory(stdscr)
-                elif self.selected_index == 3:
-                    self.current_screen = 'file_list'
-                elif self.selected_index == 5:
-                    self.export_results(stdscr)
+            while True:
+                try:
+                    stdscr.clear()
+                    h, w = stdscr.getmaxyx()
+                    
+                    if self.current_screen == 'file_list':
+                        self.draw_file_list(stdscr)
+                        key = stdscr.getch()
+                        if key != -1:  # Only process if key was actually pressed
+                            self.handle_file_list_input(key)
+                        continue
+                    
+                    # Main screen
+                    self.draw_header(stdscr)
+                    
+                    menu_start = 4
+                    self.draw_menu(stdscr, menu_start)
+                    
+                    summary_start = menu_start + 10
+                    if summary_start < h - 8:
+                        self.draw_summary(stdscr, summary_start)
+                    
+                    # Instructions
+                    stdscr.addstr(h-2, 2, "Use ↑/↓ to navigate, Enter to select, Q to quit")
+                    
+                    stdscr.refresh()
+                    
+                    key = stdscr.getch()
+                    
+                    if key == -1:  # Timeout, continue loop
+                        continue
+                    elif key == ord('q') or key == ord('Q') or key == 27:  # ESC key
+                        break
+                    elif key == curses.KEY_UP and self.selected_index > 0:
+                        self.selected_index -= 1
+                    elif key == curses.KEY_DOWN and self.selected_index < 6:
+                        self.selected_index += 1
+                    elif key == ord('\n') or key == ord(' ') or key == 10 or key == 13:
+                        if self.selected_index == 0:  # Analyze
+                            self.analyze_directory(stdscr)
+                        elif self.selected_index == 1:  # Change directory
+                            self.change_directory(stdscr)
+                        elif self.selected_index == 2:  # Summary (already shown)
+                            pass
+                        elif self.selected_index == 3:  # File list
+                            self.current_screen = 'file_list'
+                        elif self.selected_index == 4:  # By language (same as summary for now)
+                            pass
+                        elif self.selected_index == 5:  # Export
+                            self.export_results(stdscr)
+                        elif self.selected_index == 6:  # Quit
+                            break
+                    elif key >= ord('1') and key <= ord('6'):
+                        self.selected_index = key - ord('1')
+                        # Auto-execute
+                        if self.selected_index == 0:
+                            self.analyze_directory(stdscr)
+                        elif self.selected_index == 1:
+                            self.change_directory(stdscr)
+                        elif self.selected_index == 3:
+                            self.current_screen = 'file_list'
+                        elif self.selected_index == 5:
+                            self.export_results(stdscr)
+                            
+                except curses.error:
+                    # Handle terminal resize or other curses errors
+                    continue
+                    
+        except Exception as e:
+            # Ensure clean exit on any error
+            pass
 
 def main():
     if len(sys.argv) > 1:
