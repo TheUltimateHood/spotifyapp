@@ -18,6 +18,8 @@ import SearchBar from '../components/SearchBar';
 import AudioVisualizer from '../components/AudioVisualizer';
 import PlaylistModal from '../components/PlaylistModal';
 import AnimatedMusicNote from '../components/AnimatedMusicNote';
+import ModernButton from '../components/ModernButton';
+import ModernCard from '../components/ModernCard';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -186,27 +188,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
           <Text style={styles.title}>Your Music</Text>
           <View style={styles.headerButtons}>
             {tracks.length > 0 && createPlaylist && (
-              <TouchableOpacity 
-                style={[styles.addButton, styles.playlistButton]} 
+              <ModernButton
+                variant="secondary"
+                size="small"
                 onPress={() => setShowPlaylistModal(true)}
+                style={styles.playlistButton}
               >
-                <ListMusic size={16} color="#fff" />
-              </TouchableOpacity>
+                <ListMusic size={18} color="#fff" />
+              </ModernButton>
             )}
-            <TouchableOpacity
-              style={styles.addButton}
+            <ModernButton
+              variant="primary"
+              size="medium"
               onPress={pickAudioFiles}
               disabled={loading}
+              title={loading ? "Loading..." : "Add Music"}
+              style={loading && { opacity: 0.7 }}
             >
-{loading ? (
-                <Text style={styles.addButtonText}>Loading...</Text>
-              ) : (
-                <>
-                  <Plus size={16} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={styles.addButtonText}>Add Music</Text>
-                </>
-              )}
-            </TouchableOpacity>
+              {!loading && <Plus size={18} color="#fff" style={{ marginRight: 8 }} />}
+            </ModernButton>
           </View>
         </View>
         <SearchBar onSearch={handleSearch} />
@@ -243,12 +243,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
       )}
 
       {currentTrack && (
-        <TouchableOpacity 
-          style={styles.miniPlayer}
-          onPress={() => navigation.navigate('Player' as never)}
-          activeOpacity={0.9}
-        >
-          <View style={styles.miniPlayerContent}>
+        <ModernCard elevated style={styles.miniPlayer}>
+          <TouchableOpacity 
+            style={styles.miniPlayerTouch}
+            onPress={() => navigation.navigate('Player' as never)}
+            activeOpacity={0.9}
+          >
+            <View style={styles.miniPlayerContent}>
             <View style={styles.miniPlayerLeft}>
               <AudioVisualizer isPlaying={isPlaying} style={styles.miniVisualizer} />
               <View style={styles.miniTrackInfo}>
@@ -262,7 +263,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
             </View>
             <PlayerControls mini={true} />
           </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </ModernCard>
       )}
       
       {createPlaylist && (

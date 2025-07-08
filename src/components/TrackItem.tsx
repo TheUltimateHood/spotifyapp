@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import ModernCard from './ModernCard';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -30,27 +31,30 @@ const TrackItem: React.FC<TrackItemProps> = ({ track, onPress, isCurrentTrack })
   };
 
   return (
-    <TouchableOpacity
-      style={[styles.container, isCurrentTrack && styles.currentTrack]}
-      onPress={handlePress}
-    >
-      <View style={styles.artwork}>
-        <Text style={styles.artworkPlaceholder}>♪</Text>
-      </View>
-      <View style={styles.trackInfo}>
-        <Text style={[styles.title, isCurrentTrack && styles.currentText]} numberOfLines={1}>
-          {track.title}
-        </Text>
-        <Text style={[styles.artist, isCurrentTrack && styles.currentSubText]} numberOfLines={1}>
-          {track.artist}
-        </Text>
-      </View>
-      <View style={styles.duration}>
-        <Text style={[styles.durationText, isCurrentTrack && styles.currentSubText]}>
-          {isCurrentTrack ? '♪' : ''}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    <ModernCard elevated={isCurrentTrack}>
+      <TouchableOpacity
+        style={[styles.container, isCurrentTrack && styles.currentTrack]}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.artwork, isCurrentTrack && styles.currentArtwork]}>
+          <Text style={styles.artworkPlaceholder}>♪</Text>
+        </View>
+        <View style={styles.trackInfo}>
+          <Text style={[styles.title, isCurrentTrack && styles.currentText]} numberOfLines={1}>
+            {track.title}
+          </Text>
+          <Text style={[styles.artist, isCurrentTrack && styles.currentSubText]} numberOfLines={1}>
+            {track.artist}
+          </Text>
+        </View>
+        <View style={[styles.duration, isCurrentTrack && styles.currentDuration]}>
+          <Text style={[styles.durationText, isCurrentTrack && styles.currentSubText]}>
+            {isCurrentTrack ? '▶' : ''}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </ModernCard>
   );
 };
 
@@ -58,46 +62,25 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    marginHorizontal: 8,
-    backgroundColor: '#181818',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#282828',
+    padding: 0,
   },
   currentTrack: {
-    backgroundColor: '#282828',
-    borderColor: '#1db954',
-    borderWidth: 1,
-    shadowColor: '#1db954',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    // ModernCard handles the styling now
   },
   artwork: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     borderRadius: 12,
     backgroundColor: '#404040',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 2,
+  },
+  currentArtwork: {
+    backgroundColor: '#1db954',
   },
   artworkPlaceholder: {
-    fontSize: 24,
+    fontSize: 26,
     color: '#b3b3b3',
   },
   trackInfo: {
@@ -105,37 +88,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     color: '#fff',
-    marginBottom: 4,
-    letterSpacing: -0.1,
+    marginBottom: 6,
+    letterSpacing: -0.2,
   },
   artist: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#b3b3b3',
     fontWeight: '500',
   },
   currentText: {
-    color: '#1ed760',
+    color: '#fff',
     fontWeight: '700',
   },
   currentSubText: {
-    color: '#1ed760',
+    color: '#e0e0e0',
     fontWeight: '600',
   },
   duration: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#323232',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#333',
+  },
+  currentDuration: {
+    backgroundColor: '#1db954',
   },
   durationText: {
-    fontSize: 16,
-    color: '#1db954',
-    fontWeight: '600',
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '700',
   },
 });
 
