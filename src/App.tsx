@@ -12,24 +12,28 @@ import MiniPlayer from './components/MiniPlayer';
 import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
 
-// Web-specific imports
+// Conditional imports for native vs web
 let TrackPlayer: any;
 let NavigationContainer: any;
 let createStackNavigator: any;
 
 if (Platform.OS !== 'web') {
-  TrackPlayer = require('react-native-track-player').default;
-  const { playbackService } = require('./services/playbackService');
-  TrackPlayer.registerPlaybackService(() => playbackService);
-  
-  // Import navigation for native
-  const navigation = require('@react-navigation/native');
-  const stack = require('@react-navigation/stack');
-  NavigationContainer = navigation.NavigationContainer;
-  createStackNavigator = stack.createStackNavigator;
+  try {
+    TrackPlayer = require('react-native-track-player').default;
+    const { playbackService } = require('./services/playbackService');
+    TrackPlayer.registerPlaybackService(() => playbackService);
+    
+    // Import navigation for native
+    const { NavigationContainer: NavContainer } = require('@react-navigation/native');
+    const { createStackNavigator: createStack } = require('@react-navigation/stack');
+    NavigationContainer = NavContainer;
+    createStackNavigator = createStack;
+  } catch (error) {
+    console.warn('Native dependencies not available:', error);
+  }
 }
 
-const Stack = Platform.OS !== 'web' ? createStackNavigator() : null;
+const Stack = Platform.OS !== 'web' && createStackNavigator ? createStackNavigator() : null;
 
 function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');

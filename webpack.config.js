@@ -10,15 +10,6 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/',
-    library: {
-      type: 'module',
-    },
-    environment: {
-      module: true,
-    },
-  },
-  experiments: {
-    outputModule: true,
   },
   resolve: {
     extensions: ['.web.js', '.js', '.jsx', '.ts', '.tsx'],
@@ -30,9 +21,11 @@ module.exports = {
       'react-native-permissions': false,
       'react-native-fs': false,
       'react-native-gesture-handler': 'react-native-web',
-      'react-native-reanimated': 'react-native-web/dist/exports/Animated',
+      'react-native-reanimated': 'react-native-web',
       'react-native-safe-area-context': 'react-native-web',
       'react-native-screens': 'react-native-web',
+      '@react-navigation/native': '@react-navigation/native',
+      '@react-navigation/stack': '@react-navigation/stack',
     },
     fullySpecified: false,
   },
@@ -67,7 +60,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.html',
       inject: 'body',
-      scriptLoading: 'defer'
+      scriptLoading: 'blocking'
     }),
   ],
   devServer: {
@@ -76,5 +69,10 @@ module.exports = {
     host: '0.0.0.0',
     allowedHosts: 'all',
     historyApiFallback: true,
+    client: {
+      webSocketTransport: 'ws',
+      logging: 'info',
+    },
+    webSocketServer: 'ws',
   },
 };
