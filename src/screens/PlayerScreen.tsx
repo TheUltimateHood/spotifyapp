@@ -14,7 +14,6 @@ import PlayerControls from '../components/PlayerControls';
 import ProgressBar from '../components/ProgressBar';
 import VolumeControl from '../components/VolumeControl';
 import AudioVisualizer from '../components/AudioVisualizer';
-import ShuffleRepeatControls from '../components/ShuffleRepeatControls';
 import GradientBackground from '../components/GradientBackground';
 
 // Platform-specific imports
@@ -68,14 +67,11 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
         </View>
 
         <View style={styles.content}>
-          <View style={styles.artworkContainer}>
-            <View style={[styles.artwork, Platform.OS === 'web' && { className: 'card-hover glow-animation' }]}>
-              <AudioVisualizer 
-                isPlaying={isPlaying} 
-                style={styles.visualizer}
-              />
-              <Music size={120} color="#666" />
-            </View>
+          <View style={styles.visualizerContainer}>
+            <AudioVisualizer 
+              isPlaying={isPlaying} 
+              style={styles.visualizer}
+            />
           </View>
 
           <View style={styles.trackInfo}>
@@ -94,17 +90,6 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
           <View style={styles.controlsContainer}>
             <PlayerControls mini={false} />
           </View>
-          
-          {toggleShuffle && toggleRepeat && (
-            <View style={styles.shuffleRepeatContainer}>
-              <ShuffleRepeatControls
-                shuffleMode={shuffleMode || false}
-                repeatMode={repeatMode || 'off'}
-                onToggleShuffle={toggleShuffle}
-                onToggleRepeat={toggleRepeat}
-              />
-            </View>
-          )}
           
           <View style={styles.volumeContainer}>
             <VolumeControl />
@@ -155,34 +140,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
   },
-  artworkContainer: {
+  visualizerContainer: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  artwork: {
-    width: Math.min(320, width - 80),
-    height: Math.min(320, width - 80),
-    borderRadius: 24,
-    backgroundColor: '#282828',
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: '#404040',
-    position: 'relative',
-    overflow: 'hidden',
+    flex: 1,
+    paddingHorizontal: 40,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   visualizer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
+    width: 200,
+    height: 200,
   },
   trackInfo: {
     alignItems: 'center',

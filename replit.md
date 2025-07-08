@@ -103,6 +103,11 @@ Changelog:
 - July 08, 2025: Implemented individual track deletion with swipe menu
 - July 08, 2025: Added storage management with library size display and clear functionality
 - July 08, 2025: Removed About section, reorganized settings under Playback, Storage, App Info
+- July 08, 2025: Major UX improvements - removed album artwork throughout app for cleaner interface
+- July 08, 2025: Enhanced playlist creation modal to full-screen with comprehensive search functionality
+- July 08, 2025: Moved shuffle/repeat controls above navigation bar for better accessibility
+- July 08, 2025: Streamlined track items to focus on song title and artist without artwork clutter
+- July 08, 2025: Improved bulk selection mode with visual feedback and intuitive controls
 ```
 
 ## User Preferences

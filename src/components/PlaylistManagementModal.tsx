@@ -123,10 +123,6 @@ const PlaylistManagementModal: React.FC<PlaylistManagementModalProps> = ({
         onPress={() => toggleTrackSelection(item.id)}
         activeOpacity={0.7}
       >
-        <View style={styles.trackIcon}>
-          <Music size={isDesktop ? 20 : 16} color="#666" />
-        </View>
-        
         <View style={styles.trackInfo}>
           <Text style={[styles.trackTitle, isSelected && styles.trackTitleSelected]} numberOfLines={1}>
             {item.title}
@@ -240,7 +236,7 @@ const PlaylistManagementModal: React.FC<PlaylistManagementModalProps> = ({
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={false}
+      presentationStyle="fullScreen"
       onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.container}>
@@ -405,18 +401,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1db954',
     borderColor: '#1db954',
   },
-  trackIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#404040',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
   trackInfo: {
     flex: 1,
     marginRight: 12,
+    paddingLeft: 4,
   },
   trackTitle: {
     fontSize: isDesktop ? 16 : 14,

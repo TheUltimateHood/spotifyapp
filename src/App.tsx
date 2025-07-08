@@ -10,6 +10,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import PlayerScreen from './screens/PlayerScreen';
 import BottomNavigation from './components/BottomNavigation';
 import MiniPlayer from './components/MiniPlayer';
+import ShuffleRepeatControls from './components/ShuffleRepeatControls';
 import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
 
@@ -79,6 +80,34 @@ function App(): JSX.Element {
     setShowPlayerModal(true);
   };
 
+  // Platform-specific context hook
+  let useMusicContext: any;
+  if (Platform.OS === 'web') {
+    const { useMusicContext: webContext } = require('./context/WebMusicContext');
+    useMusicContext = webContext;
+  } else {
+    const { useMusicContext: nativeContext } = require('./context/MusicContext');
+    useMusicContext = nativeContext;
+  }
+
+  const ShuffleRepeatControlsBar = () => {
+    const context = useMusicContext();
+    const { currentTrack, shuffleMode, repeatMode, toggleShuffle, toggleRepeat } = context;
+    
+    if (!currentTrack || !toggleShuffle || !toggleRepeat) return null;
+    
+    return (
+      <View style={styles.shuffleRepeatBar}>
+        <ShuffleRepeatControls 
+          shuffleMode={shuffleMode}
+          repeatMode={repeatMode}
+          onToggleShuffle={toggleShuffle}
+          onToggleRepeat={toggleRepeat}
+        />
+      </View>
+    );
+  };
+
   const renderCurrentScreen = () => {
     switch (activeTab) {
       case 'Home':
@@ -106,6 +135,7 @@ function App(): JSX.Element {
             {renderCurrentScreen()}
           </View>
           <MiniPlayer onPress={() => setShowPlayerModal(true)} />
+          <ShuffleRepeatControlsBar />
           <BottomNavigation 
             activeTab={activeTab} 
             onTabChange={setActiveTab} 
@@ -130,6 +160,7 @@ function App(): JSX.Element {
             {renderCurrentScreen()}
           </View>
           <MiniPlayer onPress={() => setShowPlayerModal(true)} />
+          <ShuffleRepeatControlsBar />
           <BottomNavigation 
             activeTab={activeTab} 
             onTabChange={setActiveTab} 
@@ -167,6 +198,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#121212',
     zIndex: 1000,
+  },
+  shuffleRepeatBar: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

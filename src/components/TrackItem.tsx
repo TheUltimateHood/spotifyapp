@@ -73,9 +73,6 @@ const TrackItem: React.FC<TrackItemProps> = ({
           onPress={handlePress}
           activeOpacity={0.7}
         >
-          <View style={[styles.artwork, isCurrentTrack && styles.currentArtwork]}>
-            <Text style={styles.artworkPlaceholder}>♪</Text>
-          </View>
           <View style={styles.trackInfo}>
             <Text style={[styles.title, isCurrentTrack && styles.currentText]} numberOfLines={1}>
               {track.title}
@@ -84,8 +81,8 @@ const TrackItem: React.FC<TrackItemProps> = ({
               {track.artist}
             </Text>
           </View>
-          <View style={[styles.duration, isCurrentTrack && styles.currentDuration]}>
-            <Text style={[styles.durationText, isCurrentTrack && styles.currentSubText]}>
+          <View style={[styles.status, isCurrentTrack && styles.currentStatus]}>
+            <Text style={[styles.statusText, isCurrentTrack && styles.currentSubText]}>
               {isCurrentTrack ? '▶' : ''}
             </Text>
           </View>
@@ -132,25 +129,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     paddingRight: 8,
+    paddingLeft: 16,
+    paddingVertical: 12,
   },
   currentTrack: {
     // ModernCard handles the styling now
-  },
-  artwork: {
-    width: Platform.OS === 'web' ? 60 : 70,
-    height: Platform.OS === 'web' ? 60 : 70,
-    borderRadius: 12,
-    backgroundColor: '#404040',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  currentArtwork: {
-    backgroundColor: '#1db954',
-  },
-  artworkPlaceholder: {
-    fontSize: 26,
-    color: '#b3b3b3',
   },
   trackInfo: {
     flex: 1,
@@ -176,20 +159,20 @@ const styles = StyleSheet.create({
     color: '#e0e0e0',
     fontWeight: '600',
   },
-  duration: {
+  status: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#333',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'transparent',
   },
-  currentDuration: {
-    backgroundColor: '#1db954',
+  currentStatus: {
+    backgroundColor: 'transparent',
   },
-  durationText: {
-    fontSize: 18,
-    color: '#fff',
+  statusText: {
+    fontSize: 16,
+    color: '#1db954',
     fontWeight: '700',
   },
   menuContainer: {
