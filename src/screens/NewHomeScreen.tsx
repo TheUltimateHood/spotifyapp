@@ -123,22 +123,26 @@ const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onTrackSelect }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#000000', // DRAMATIC BLACK BACKGROUND
   },
   header: {
     paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    backgroundColor: '#1a1a1a', // DARKER HEADER
+    borderBottomWidth: 3,
+    borderBottomColor: '#1db954', // GREEN BORDER
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 48, // MUCH LARGER TITLE
+    fontWeight: '900',
+    color: '#1db954', // BRIGHT GREEN
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#b3b3b3',
+    fontSize: 20, // BIGGER SUBTITLE
+    color: '#ffffff', // WHITE SUBTITLE
+    fontWeight: '600',
   },
   content: {
     paddingHorizontal: 20,
