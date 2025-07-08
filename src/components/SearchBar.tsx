@@ -7,6 +7,7 @@ import {
   Text,
   Platform,
 } from 'react-native';
+import { Search } from 'lucide-react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -28,7 +29,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = 'Search y
 
   return (
     <View style={[styles.container, isFocused && styles.containerFocused]}>
-      <Text style={styles.searchIcon}>🔍</Text>
+      <Search size={16} color="#666" style={styles.searchIcon} />
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -67,7 +68,6 @@ const styles = StyleSheet.create({
     borderColor: '#1db954',
   },
   searchIcon: {
-    fontSize: 16,
     marginRight: 10,
   },
   input: {
