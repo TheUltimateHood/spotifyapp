@@ -35,8 +35,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
 
   const handlePress = async () => {
     if (!showMenu) {
-      await playTrack(track);
-      onPress();
+      onPress(); // Let the parent component handle selection mode vs playing
     }
   };
 

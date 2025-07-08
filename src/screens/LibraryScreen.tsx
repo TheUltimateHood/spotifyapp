@@ -9,12 +9,14 @@ import {
   SafeAreaView,
   PermissionsAndroid,
   Platform,
+  Dimensions,
 } from 'react-native';
-import { ListMusic, Plus } from 'lucide-react';
+import { ListMusic, Plus, Trash2 } from 'lucide-react';
 import TrackItem from '../components/TrackItem';
 import SearchBar from '../components/SearchBar';
 import AnimatedMusicNote from '../components/AnimatedMusicNote';
-import PlaylistModal from '../components/PlaylistModal';
+import PlaylistManagementModal from '../components/PlaylistManagementModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -37,13 +39,20 @@ interface LibraryScreenProps {
   onTrackSelect: (track: any) => void;
 }
 
+const { width: screenWidth } = Dimensions.get('window');
+const isTablet = screenWidth > 768;
+const isDesktop = screenWidth > 1024;
+
 const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
   const context = useMusicContext();
-  const { tracks, addTracks, currentTrack, playlists, createPlaylist } = context;
+  const { tracks, addTracks, currentTrack, playlists, createPlaylist, clearTracks, removeTrack } = context;
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTracks, setFilteredTracks] = useState(tracks);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +60,61 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
     if (createPlaylist) {
       createPlaylist(name, trackIds);
     }
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedTracks([]);
+  };
+
+  const toggleTrackSelection = (trackId: string) => {
+    setSelectedTracks(prev =>
+      prev.includes(trackId)
+        ? prev.filter(id => id !== trackId)
+        : [...prev, trackId]
+    );
+  };
+
+  const selectAllTracks = () => {
+    setSelectedTracks(filteredTracks.map(track => track.id));
+  };
+
+  const clearSelection = () => {
+    setSelectedTracks([]);
+  };
+
+  const deleteSelectedTracks = () => {
+    if (selectedTracks.length === 0) return;
+
+    Alert.alert(
+      'Delete Songs',
+      `Are you sure you want to delete ${selectedTracks.length} selected song(s) from your library?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            selectedTracks.forEach(trackId => removeTrack(trackId));
+            setSelectedTracks([]);
+            setIsSelectionMode(false);
+            Alert.alert('Success', `Deleted ${selectedTracks.length} song(s) from your library`);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleClearAllTracks = () => {
+    setShowClearConfirmation(true);
+  };
+
+  const confirmClearAllTracks = () => {
+    clearTracks();
+    setShowClearConfirmation(false);
+    setIsSelectionMode(false);
+    setSelectedTracks([]);
+    Alert.alert('Success', 'All songs have been removed from your library');
   };
 
   useEffect(() => {
@@ -189,48 +253,115 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
     }
   };
 
-  const renderTrackItem = ({ item }: { item: Track }) => (
-    <TrackItem
-      track={item}
-      onPress={() => {
-        context.playTrack(item);
-        onTrackSelect(item);
-      }}
-      isCurrentTrack={currentTrack?.id === item.id}
-    />
-  );
+  const renderTrackItem = ({ item }: { item: Track }) => {
+    const isSelected = selectedTracks.includes(item.id);
+    
+    return (
+      <View style={[styles.trackItemContainer, isSelected && styles.trackItemSelected]}>
+        {isSelectionMode && (
+          <TouchableOpacity
+            style={styles.selectionCheckbox}
+            onPress={() => toggleTrackSelection(item.id)}
+          >
+            <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+              {isSelected && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+          </TouchableOpacity>
+        )}
+        <View style={styles.trackItemContent}>
+          <TrackItem
+            track={item}
+            onPress={() => {
+              if (isSelectionMode) {
+                toggleTrackSelection(item.id);
+              } else {
+                context.playTrack(item);
+                onTrackSelect(item);
+              }
+            }}
+            isCurrentTrack={currentTrack?.id === item.id}
+            showDeleteOption={!isSelectionMode}
+          />
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.title}>Your Library</Text>
+          <Text style={styles.title}>
+            {isSelectionMode ? `${selectedTracks.length} Selected` : 'Your Library'}
+          </Text>
           <View style={styles.headerButtons}>
-            {tracks.length > 0 && createPlaylist && (
-              <TouchableOpacity 
-                style={[styles.addButton, styles.playlistButton]} 
-                onPress={() => setShowPlaylistModal(true)}
-              >
-                <ListMusic size={16} color="#fff" />
-              </TouchableOpacity>
+            {isSelectionMode ? (
+              <>
+                <TouchableOpacity
+                  style={[styles.headerButton, styles.selectAllButton]}
+                  onPress={selectAllTracks}
+                >
+                  <Text style={styles.headerButtonText}>All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.headerButton, styles.clearButton]}
+                  onPress={clearSelection}
+                >
+                  <Text style={styles.headerButtonText}>Clear</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.headerButton, styles.deleteButton]}
+                  onPress={deleteSelectedTracks}
+                  disabled={selectedTracks.length === 0}
+                >
+                  <Trash2 size={16} color={selectedTracks.length > 0 ? "#fff" : "#666"} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.headerButton, styles.cancelButton]}
+                  onPress={toggleSelectionMode}
+                >
+                  <Text style={styles.headerButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                {tracks.length > 0 && (
+                  <TouchableOpacity
+                    style={[styles.headerButton, styles.selectionModeButton]}
+                    onPress={toggleSelectionMode}
+                  >
+                    <Trash2 size={16} color="#fff" />
+                  </TouchableOpacity>
+                )}
+                {tracks.length > 0 && createPlaylist && (
+                  <TouchableOpacity 
+                    style={[styles.addButton, styles.playlistButton]} 
+                    onPress={() => setShowPlaylistModal(true)}
+                  >
+                    <ListMusic size={16} color="#fff" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={pickAudioFiles}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Text style={styles.addButtonText}>Loading...</Text>
+                  ) : (
+                    <>
+                      <Plus size={16} color="#fff" style={{ marginRight: 6 }} />
+                      <Text style={styles.addButtonText}>Add Music</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
             )}
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={pickAudioFiles}
-              disabled={loading}
-            >
-              {loading ? (
-                <Text style={styles.addButtonText}>Loading...</Text>
-              ) : (
-                <>
-                  <Plus size={16} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={styles.addButtonText}>Add Music</Text>
-                </>
-              )}
-            </TouchableOpacity>
           </View>
         </View>
-        <SearchBar onSearch={handleSearch} placeholder="Search your library..." />
+        {!isSelectionMode && (
+          <SearchBar onSearch={handleSearch} placeholder="Search your library..." />
+        )}
       </View>
 
       {tracks.length === 0 ? (
@@ -264,13 +395,23 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
       )}
       
       {createPlaylist && (
-        <PlaylistModal
+        <PlaylistManagementModal
           visible={showPlaylistModal}
           onClose={() => setShowPlaylistModal(false)}
           onCreatePlaylist={handleCreatePlaylist}
           tracks={tracks}
         />
       )}
+      
+      <ConfirmationModal
+        visible={showClearConfirmation}
+        title="Clear All Music"
+        message="This action will permanently remove all songs from your library. This cannot be undone."
+        confirmationText="Delete all songs in library"
+        onConfirm={confirmClearAllTracks}
+        onCancel={() => setShowClearConfirmation(false)}
+        destructive={true}
+      />
     </SafeAreaView>
   );
 };
@@ -346,6 +487,68 @@ const styles = StyleSheet.create({
     color: '#b3b3b3',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  trackItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  trackItemSelected: {
+    backgroundColor: 'rgba(29, 185, 84, 0.1)',
+  },
+  selectionCheckbox: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#666',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#1db954',
+    borderColor: '#1db954',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  trackItemContent: {
+    flex: 1,
+  },
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  selectAllButton: {
+    backgroundColor: '#1db954',
+  },
+  clearButton: {
+    backgroundColor: '#333',
+  },
+  deleteButton: {
+    backgroundColor: '#e22134',
+  },
+  cancelButton: {
+    backgroundColor: '#666',
+  },
+  selectionModeButton: {
+    backgroundColor: '#333',
   },
 });
 
