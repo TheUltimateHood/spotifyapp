@@ -68,13 +68,13 @@ const styles = StyleSheet.create({
     // ModernCard handles the styling now
   },
   artwork: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 70,
+    height: 70,
+    borderRadius: 16,
     backgroundColor: '#404040',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
   },
   currentArtwork: {
     backgroundColor: '#1db954',
@@ -88,16 +88,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#fff',
-    marginBottom: 6,
-    letterSpacing: -0.2,
+    marginBottom: 8,
+    letterSpacing: -0.3,
   },
   artist: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#b3b3b3',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   currentText: {
     color: '#fff',

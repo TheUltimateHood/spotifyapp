@@ -22,20 +22,22 @@ const ModernCard: React.FC<ModernCardProps> = ({ children, style, elevated = fal
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1e1e1e',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#333',
+    backgroundColor: '#2a2a2a',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    marginHorizontal: 16,
+    borderWidth: 2,
+    borderColor: '#404040',
   },
   elevated: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    backgroundColor: '#252525',
+    shadowColor: '#1db954',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+    backgroundColor: '#333333',
+    borderColor: '#1db954',
   },
 });
 

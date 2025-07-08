@@ -282,17 +282,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000', // Deep black background
   },
   header: {
     paddingTop: 20,
-    paddingBottom: 16,
-    backgroundColor: '#121212',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingBottom: 20,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   headerTop: {
     flexDirection: 'row',
@@ -306,10 +303,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: -0.5,
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#1db954',
+    letterSpacing: -1,
   },
   addButton: {
     backgroundColor: '#1db954',
