@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Music } from 'lucide-react';
 import PlayerControls from '../components/PlayerControls';
 import ProgressBar from '../components/ProgressBar';
 import VolumeControl from '../components/VolumeControl';
@@ -53,7 +54,7 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <ArrowLeft size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Now Playing</Text>
         <View style={styles.placeholder} />
@@ -66,7 +67,7 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
               isPlaying={isPlaying} 
               style={styles.visualizer}
             />
-            <Text style={styles.artworkPlaceholder}>♪</Text>
+            <Music size={80} color="#666" />
           </View>
         </View>
 
@@ -124,11 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+
   headerTitle: {
     color: '#fff',
     fontSize: 16,
@@ -156,10 +153,7 @@ const styles = StyleSheet.create({
     maxWidth: 300,
     maxHeight: 300,
   },
-  artworkPlaceholder: {
-    fontSize: 80,
-    color: '#b3b3b3',
-  },
+
   visualizer: {
     position: 'absolute',
     bottom: 20,

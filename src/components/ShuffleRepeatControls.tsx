@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Shuffle, Repeat, Repeat1 } from 'lucide-react';
 
 interface ShuffleRepeatControlsProps {
   shuffleMode: boolean;
@@ -17,11 +18,11 @@ const ShuffleRepeatControls: React.FC<ShuffleRepeatControlsProps> = ({
   const getRepeatIcon = () => {
     switch (repeatMode) {
       case 'one':
-        return '🔂';
+        return <Repeat1 size={20} color={repeatMode !== 'off' ? '#1db954' : '#666'} />;
       case 'all':
-        return '🔁';
+        return <Repeat size={20} color={repeatMode !== 'off' ? '#1db954' : '#666'} />;
       default:
-        return '↻';
+        return <Repeat size={20} color="#666" />;
     }
   };
 
@@ -31,16 +32,14 @@ const ShuffleRepeatControls: React.FC<ShuffleRepeatControlsProps> = ({
         style={[styles.button, shuffleMode && styles.buttonActive]}
         onPress={onToggleShuffle}
       >
-        <Text style={[styles.icon, shuffleMode && styles.iconActive]}>🔀</Text>
+        <Shuffle size={20} color={shuffleMode ? '#1db954' : '#666'} />
       </TouchableOpacity>
       
       <TouchableOpacity
         style={[styles.button, repeatMode !== 'off' && styles.buttonActive]}
         onPress={onToggleRepeat}
       >
-        <Text style={[styles.icon, repeatMode !== 'off' && styles.iconActive]}>
-          {getRepeatIcon()}
-        </Text>
+        {getRepeatIcon()}
       </TouchableOpacity>
     </View>
   );
@@ -62,13 +61,7 @@ const styles = StyleSheet.create({
   buttonActive: {
     backgroundColor: 'rgba(29, 185, 84, 0.2)',
   },
-  icon: {
-    fontSize: 20,
-    color: '#666',
-  },
-  iconActive: {
-    color: '#1db954',
-  },
+
 });
 
 export default ShuffleRepeatControls;

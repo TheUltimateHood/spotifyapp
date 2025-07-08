@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -50,9 +51,11 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ mini }) => {
         </View>
         <View style={styles.miniControls}>
           <TouchableOpacity onPress={handlePlayPause} style={styles.miniPlayButton}>
-            <Text style={styles.miniPlayButtonText}>
-              {isPlaying ? '⏸' : '▶️'}
-            </Text>
+            {isPlaying ? (
+              <Pause size={18} color="#fff" fill="#fff" />
+            ) : (
+              <Play size={18} color="#fff" fill="#fff" />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -63,17 +66,19 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ mini }) => {
     <View style={styles.container}>
       <View style={styles.controls}>
         <TouchableOpacity onPress={previousTrack} style={styles.controlButton}>
-          <Text style={styles.controlButtonText}>⏮</Text>
+          <SkipBack size={24} color="#fff" fill="#fff" />
         </TouchableOpacity>
         
         <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
-          <Text style={styles.playButtonText}>
-            {isPlaying ? '⏸' : '▶️'}
-          </Text>
+          {isPlaying ? (
+            <Pause size={32} color="#fff" fill="#fff" />
+          ) : (
+            <Play size={32} color="#fff" fill="#fff" />
+          )}
         </TouchableOpacity>
         
         <TouchableOpacity onPress={nextTrack} style={styles.controlButton}>
-          <Text style={styles.controlButtonText}>⏭</Text>
+          <SkipForward size={24} color="#fff" fill="#fff" />
         </TouchableOpacity>
       </View>
     </View>
@@ -98,10 +103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
-  controlButtonText: {
-    fontSize: 24,
-    color: '#fff',
-  },
+
   playButton: {
     width: 70,
     height: 70,
@@ -111,10 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
-  playButtonText: {
-    fontSize: 32,
-    color: '#fff',
-  },
+
   miniContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -147,10 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  miniPlayButtonText: {
-    fontSize: 18,
-    color: '#fff',
-  },
+
 });
 
 export default PlayerControls;

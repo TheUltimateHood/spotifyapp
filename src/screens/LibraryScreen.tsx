@@ -10,14 +10,11 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { ListMusic, Plus } from 'lucide-react';
 import TrackItem from '../components/TrackItem';
-import PlayerControls from '../components/PlayerControls';
 import SearchBar from '../components/SearchBar';
-import AudioVisualizer from '../components/AudioVisualizer';
-import PlaylistModal from '../components/PlaylistModal';
 import AnimatedMusicNote from '../components/AnimatedMusicNote';
+import PlaylistModal from '../components/PlaylistModal';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -27,8 +24,8 @@ let Track: any;
 if (Platform.OS === 'web') {
   const { useMusicContext: webContext } = require('../context/WebMusicContext');
   useMusicContext = webContext;
-  Track = {} as any; // Web doesn't need Track type from react-native-track-player
-  DocumentPicker = null; // Will use web file picker instead
+  Track = {} as any;
+  DocumentPicker = null;
 } else {
   DocumentPicker = require('react-native-document-picker').default;
   const { useMusicContext: nativeContext } = require('../context/MusicContext');
@@ -36,19 +33,20 @@ if (Platform.OS === 'web') {
   Track = require('react-native-track-player').Track;
 }
 
-interface HomeScreenProps {
-  navigation?: any;
+interface LibraryScreenProps {
+  onTrackSelect: (track: any) => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
-  const navigation = Platform.OS === 'web' ? navProp : useNavigation();
+const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
   const context = useMusicContext();
-  const { tracks, addTracks, currentTrack, isPlaying, playlists, createPlaylist } = context;
+  const { tracks, addTracks, currentTrack, playlists, createPlaylist } = context;
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTracks, setFilteredTracks] = useState(tracks);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleCreatePlaylist = (name: string, trackIds: string[]) => {
     if (createPlaylist) {
       createPlaylist(name, trackIds);
@@ -94,14 +92,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
     return true;
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const pickAudioFiles = async () => {
     try {
       setLoading(true);
       
       if (Platform.OS === 'web') {
-        // Web file picker
         if (!fileInputRef.current) {
           const input = document.createElement('input');
           input.type = 'file';
@@ -133,7 +128,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
         
         fileInputRef.current.click();
       } else {
-        // Native file picker
         const hasPermission = await requestStoragePermission();
         if (!hasPermission) {
           Alert.alert('Permission Required', 'Storage permission is required to access music files.');
@@ -174,7 +168,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
   const renderTrackItem = ({ item }: { item: Track }) => (
     <TrackItem
       track={item}
-      onPress={() => navigation.navigate('Player' as never)}
+      onPress={() => onTrackSelect(item)}
       isCurrentTrack={currentTrack?.id === item.id}
     />
   );
@@ -183,7 +177,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.title}>Your Music</Text>
+          <Text style={styles.title}>Your Library</Text>
           <View style={styles.headerButtons}>
             {tracks.length > 0 && createPlaylist && (
               <TouchableOpacity 
@@ -198,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
               onPress={pickAudioFiles}
               disabled={loading}
             >
-{loading ? (
+              {loading ? (
                 <Text style={styles.addButtonText}>Loading...</Text>
               ) : (
                 <>
@@ -209,7 +203,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
             </TouchableOpacity>
           </View>
         </View>
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar onSearch={handleSearch} placeholder="Search your library..." />
       </View>
 
       {tracks.length === 0 ? (
@@ -240,29 +234,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.trackListContent}
         />
-      )}
-
-      {currentTrack && (
-        <TouchableOpacity 
-          style={styles.miniPlayer}
-          onPress={() => navigation.navigate('Player' as never)}
-          activeOpacity={0.9}
-        >
-          <View style={styles.miniPlayerContent}>
-            <View style={styles.miniPlayerLeft}>
-              <AudioVisualizer isPlaying={isPlaying} style={styles.miniVisualizer} />
-              <View style={styles.miniTrackInfo}>
-                <Text style={styles.miniTitle} numberOfLines={1}>
-                  {currentTrack.title}
-                </Text>
-                <Text style={styles.miniArtist} numberOfLines={1}>
-                  {currentTrack.artist}
-                </Text>
-              </View>
-            </View>
-            <PlayerControls mini={true} />
-          </View>
-        </TouchableOpacity>
       )}
       
       {createPlaylist && (
@@ -309,15 +280,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    marginLeft: 8,
+  },
+  playlistButton: {
+    paddingHorizontal: 12,
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '600',
     fontSize: 14,
+    fontWeight: '600',
   },
-  playlistButton: {
-    marginRight: 10,
-    backgroundColor: '#404040',
+  trackList: {
+    flex: 1,
+  },
+  trackListContent: {
+    paddingBottom: 100,
   },
   emptyState: {
     flex: 1,
@@ -325,80 +302,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
+  animatedNotesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
   emptyStateTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   emptyStateText: {
     fontSize: 16,
     color: '#b3b3b3',
     textAlign: 'center',
-    lineHeight: 22,
-  },
-  animatedNotesContainer: {
-    height: 100,
-    width: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  trackList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  trackListContent: {
-    paddingBottom: 100,
-  },
-  miniPlayer: {
-    backgroundColor: '#282828',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
-  miniPlayerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
-  miniPlayerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  miniVisualizer: {
-    marginRight: 12,
-  },
-  miniTrackInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  miniTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  miniArtist: {
-    fontSize: 12,
-    color: '#b3b3b3',
+    lineHeight: 24,
   },
 });
 
-export default HomeScreen;
+export default LibraryScreen;
