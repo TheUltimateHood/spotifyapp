@@ -69,11 +69,8 @@ function App(): JSX.Element {
   console.log('Rendering main app');
 
   const handleTrackSelect = async (track: any) => {
-    // Play the track and show the player modal
-    if (Platform.OS === 'web') {
-      const { playTrack } = require('./context/WebMusicContext');
-      // The music context will handle playing the track
-    }
+    // Track is already playing from the screen component
+    // Just show the player modal
     setShowPlayerModal(true);
   };
 

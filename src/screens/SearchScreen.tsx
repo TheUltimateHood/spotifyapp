@@ -51,7 +51,10 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ onTrackSelect }) => {
   const renderTrackItem = ({ item }: { item: any }) => (
     <TrackItem
       track={item}
-      onPress={() => onTrackSelect(item)}
+      onPress={() => {
+        context.playTrack(item);
+        onTrackSelect(item);
+      }}
       isCurrentTrack={currentTrack?.id === item.id}
     />
   );

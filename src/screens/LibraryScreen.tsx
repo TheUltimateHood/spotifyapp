@@ -168,7 +168,10 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
   const renderTrackItem = ({ item }: { item: Track }) => (
     <TrackItem
       track={item}
-      onPress={() => onTrackSelect(item)}
+      onPress={() => {
+        context.playTrack(item);
+        onTrackSelect(item);
+      }}
       isCurrentTrack={currentTrack?.id === item.id}
     />
   );
