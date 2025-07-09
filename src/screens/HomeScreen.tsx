@@ -20,6 +20,7 @@ import PlaylistModal from '../components/PlaylistModal';
 import AnimatedMusicNote from '../components/AnimatedMusicNote';
 import ModernButton from '../components/ModernButton';
 import ModernCard from '../components/ModernCard';
+import { processMultipleAudioFiles } from '../utils/audioConverter';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -115,9 +116,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
             const target = e.target as HTMLInputElement;
             const files = Array.from(target.files || []);
             
+            console.log(`Starting to process ${files.length} files...`);
+            
             try {
-              const { processMultipleAudioFiles } = await import('../utils/audioConverter');
               const { successful, failed } = await processMultipleAudioFiles(files);
+              
+              console.log(`Processing complete: ${successful.length} successful, ${failed.length} failed`);
               
               if (successful.length > 0) {
                 addTracks(successful);
