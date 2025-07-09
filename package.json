@@ -48,7 +48,7 @@
     "react-native-track-player": "^4.1.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "shaka-player": "^4.15.5",
+    "shaka-player": "^4.15.6",
     "typescript": "^5.8.3",
     "url-loader": "^4.1.1",
     "webpack": "^5.99.9",
