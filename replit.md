@@ -112,6 +112,9 @@ Changelog:
 - July 09, 2025: Enhanced storage management in Settings with individual track deletion and clear all functionality
 - July 09, 2025: Added TrackSelectionModal for bulk track selection with confirmation dialogs
 - July 09, 2025: Implemented typed confirmation for dangerous actions requiring exact text input
+- July 09, 2025: Expanded audio/video format support: MP3, WAV, FLAC, OGG, M4A, AAC, WMA, MP4, AVI, MOV, MKV, WebM, 3GP, WMV, ASF, AMR, AIFF, Opus
+- July 09, 2025: Enhanced video file support with automatic audio extraction for music playback
+- July 09, 2025: Improved file type detection and processing with better error handling for unsupported formats
 ```
 
 ## User Preferences

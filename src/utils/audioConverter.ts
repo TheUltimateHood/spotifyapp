@@ -15,35 +15,52 @@ export interface ConvertedTrack {
 }
 
 /**
- * Extract audio from MP4 video file using Web Audio API
+ * Extract audio from video files or process audio files
  */
-export const extractAudioFromMP4 = async (file: File): Promise<ConvertedTrack> => {
+export const extractAudioFromVideo = async (file: File): Promise<ConvertedTrack> => {
   return new Promise((resolve, reject) => {
     try {
-      // For now, we'll treat MP4 files as audio files directly
-      // Modern browsers can play MP4 audio tracks
+      // Create object URL for the file
       const audioUrl = URL.createObjectURL(file);
       
-      // Create audio element to get duration
-      const audio = new Audio();
-      audio.onloadedmetadata = () => {
+      // Create audio/video element to get duration and test playability
+      const media = new Audio();
+      
+      media.onloadedmetadata = () => {
+        const { format, isVideo } = getFileFormatInfo(file);
+        
         const track: ConvertedTrack = {
           id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           url: audioUrl,
           title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
           artist: 'Unknown Artist',
-          album: 'Unknown Album',
-          duration: audio.duration,
+          album: isVideo ? `${format} Video` : 'Unknown Album',
+          duration: media.duration || 0,
           file: file,
         };
         resolve(track);
       };
       
-      audio.onerror = () => {
-        reject(new Error('Failed to load audio from MP4 file'));
+      media.onerror = (error) => {
+        console.warn(`Failed to load ${file.name}:`, error);
+        // Some formats might not be directly playable, but we'll still try to create a track
+        const { format, isVideo } = getFileFormatInfo(file);
+        
+        const track: ConvertedTrack = {
+          id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          url: audioUrl,
+          title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
+          artist: 'Unknown Artist',
+          album: isVideo ? `${format} Video` : 'Unknown Album',
+          duration: 0, // Unknown duration
+          file: file,
+        };
+        resolve(track);
       };
       
-      audio.src = audioUrl;
+      // Set source and load
+      media.src = audioUrl;
+      media.load();
     } catch (error) {
       reject(error);
     }
@@ -51,10 +68,11 @@ export const extractAudioFromMP4 = async (file: File): Promise<ConvertedTrack> =
 };
 
 /**
- * Check if file is a supported audio format
+ * Check if file is a supported audio/video format
  */
 export const isSupportedAudioFormat = (file: File): boolean => {
   const supportedTypes = [
+    // Audio formats
     'audio/mpeg',      // MP3
     'audio/wav',       // WAV
     'audio/ogg',       // OGG
@@ -63,12 +81,34 @@ export const isSupportedAudioFormat = (file: File): boolean => {
     'audio/flac',      // FLAC
     'audio/webm',      // WebM audio
     'audio/x-m4a',     // M4A alternative MIME
-    'video/mp4',       // MP4 (can contain audio)
-    'audio/wma',       // WMA (limited support)
+    'audio/wma',       // WMA
+    'audio/x-ms-wma',  // WMA alternative MIME
+    'audio/amr',       // AMR
+    'audio/3gpp',      // 3GP audio
+    'audio/x-aiff',    // AIFF
+    'audio/aiff',      // AIFF
+    'audio/opus',      // Opus
+    // Video formats (for audio extraction)
+    'video/mp4',       // MP4
+    'video/webm',      // WebM
+    'video/avi',       // AVI
+    'video/x-msvideo', // AVI alternative MIME
+    'video/quicktime', // MOV
+    'video/x-matroska',// MKV
+    'video/mkv',       // MKV alternative MIME
+    'video/3gpp',      // 3GP
+    'video/x-flv',     // FLV
   ];
   
-  return supportedTypes.includes(file.type) || 
-         file.name.toLowerCase().match(/\.(mp3|wav|ogg|m4a|aac|flac|webm|mp4|wma)$/);
+  const fileExtension = file.name.toLowerCase().split('.').pop() || '';
+  const supportedExtensions = [
+    // Audio extensions
+    'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'webm', 'wma', 'amr', '3gp', 'aiff', 'opus',
+    // Video extensions
+    'mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', '3gp', 'wmv', 'asf'
+  ];
+  
+  return supportedTypes.includes(file.type) || supportedExtensions.includes(fileExtension);
 };
 
 /**
@@ -83,60 +123,72 @@ export const getFileFormatInfo = (file: File): {
   const mimeType = file.type.toLowerCase();
   
   // Video formats that contain audio
-  const videoFormats = ['mp4', 'webm', 'avi', 'mov'];
+  const videoFormats = ['mp4', 'webm', 'avi', 'mov', 'mkv', 'flv', '3gp', 'wmv', 'asf'];
   const isVideo = videoFormats.includes(extension) || mimeType.startsWith('video/');
   
-  // Formats that work directly in browsers
-  const nativeFormats = ['mp3', 'wav', 'ogg', 'webm', 'm4a', 'aac'];
-  const needsConversion = !nativeFormats.includes(extension) && !mimeType.startsWith('audio/');
+  // Formats that work directly in browsers (no conversion needed)
+  const nativeFormats = ['mp3', 'wav', 'ogg', 'webm', 'm4a', 'aac', 'mp4', 'flac', 'opus'];
+  const needsConversion = !nativeFormats.includes(extension) && isVideo;
   
   return {
     format: extension.toUpperCase(),
     isVideo,
-    needsConversion: isVideo, // For now, we'll flag video files as needing "conversion"
+    needsConversion, // Only video files that aren't MP4/WebM need special handling
   };
 };
 
 /**
- * Process and convert audio files as needed
+ * Process and convert audio/video files as needed
  */
 export const processAudioFile = async (file: File): Promise<ConvertedTrack> => {
-  const formatInfo = getFileFormatInfo(file);
+  const { format, isVideo } = getFileFormatInfo(file);
   
   if (!isSupportedAudioFormat(file)) {
-    throw new Error(`Unsupported file format: ${formatInfo.format}`);
+    throw new Error(`Unsupported file format: ${format}`);
   }
   
-  // Handle MP4 and other video files
-  if (formatInfo.isVideo || file.type.startsWith('video/')) {
-    return await extractAudioFromMP4(file);
+  if (isVideo) {
+    // Process video files (extract audio)
+    return extractAudioFromVideo(file);
+  } else {
+    // Process regular audio files
+    const audioUrl = URL.createObjectURL(file);
+    
+    const track: ConvertedTrack = {
+      id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      url: audioUrl,
+      title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
+      artist: 'Unknown Artist',
+      album: `${format} Audio`,
+      duration: 0, // Will be set when audio loads
+      file: file,
+    };
+    
+    // Try to get duration
+    try {
+      const audio = new Audio(audioUrl);
+      await new Promise((resolve, reject) => {
+        audio.onloadedmetadata = () => {
+          track.duration = audio.duration || 0;
+          resolve(null);
+        };
+        audio.onerror = () => {
+          // If audio fails to load, still resolve with track
+          console.warn(`Could not load audio for ${file.name}, format may not be fully supported`);
+          resolve(null);
+        };
+        setTimeout(() => {
+          // Timeout after 5 seconds
+          console.warn(`Timeout loading metadata for ${file.name}`);
+          resolve(null);
+        }, 5000);
+      });
+    } catch (error) {
+      console.warn('Could not determine audio duration:', error);
+    }
+    
+    return track;
   }
-  
-  // Handle regular audio files
-  const audioUrl = URL.createObjectURL(file);
-  
-  return new Promise((resolve, reject) => {
-    const audio = new Audio();
-    
-    audio.onloadedmetadata = () => {
-      const track: ConvertedTrack = {
-        id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        url: audioUrl,
-        title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
-        artist: 'Unknown Artist',
-        album: 'Unknown Album',
-        duration: audio.duration,
-        file: file,
-      };
-      resolve(track);
-    };
-    
-    audio.onerror = () => {
-      reject(new Error(`Failed to load audio file: ${file.name}`));
-    };
-    
-    audio.src = audioUrl;
-  });
 };
 
 /**

@@ -164,7 +164,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
         if (!fileInputRef.current) {
           const input = document.createElement('input');
           input.type = 'file';
-          input.accept = 'audio/*,video/mp4,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4';
+          input.accept = 'audio/*,video/*,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4,.avi,.mov,.mkv,.webm,.3gp,.wmv,.asf,.amr,.aiff,.opus';
           input.multiple = true;
           input.style.display = 'none';
           
