@@ -139,41 +139,47 @@ const SettingsScreen: React.FC = () => {
             disabled: true,
           })}
           
-          {tracks.length > 0 && (
-            <>
-              <TouchableOpacity 
-                style={[styles.settingItem, styles.warningButton]} 
-                onPress={handleDeleteSelectedTracks}
-              >
-                <View style={styles.settingLeft}>
-                  <View style={[styles.iconContainer, styles.warningIcon]}>
-                    <Trash2 size={20} color="#fff" />
-                  </View>
-                  <View style={styles.textContainer}>
-                    <Text style={styles.warningButtonText}>Delete Selected Songs</Text>
-                    <Text style={styles.warningButtonSubtitle}>Choose specific songs to remove</Text>
-                  </View>
-                </View>
-                <ChevronRight size={16} color="#fff" />
-              </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.settingItem, styles.warningButton]} 
+            onPress={handleDeleteSelectedTracks}
+            disabled={tracks.length === 0}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, styles.warningIcon]}>
+                <Trash2 size={20} color="#fff" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={[styles.warningButtonText, tracks.length === 0 && styles.disabledText]}>
+                  Delete Selected Songs
+                </Text>
+                <Text style={[styles.warningButtonSubtitle, tracks.length === 0 && styles.disabledText]}>
+                  {tracks.length === 0 ? 'No songs in library' : 'Choose specific songs to remove'}
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color={tracks.length === 0 ? "#666" : "#fff"} />
+          </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[styles.settingItem, styles.clearButton]} 
-                onPress={handleClearTracks}
-              >
-                <View style={styles.settingLeft}>
-                  <View style={[styles.iconContainer, styles.destructiveIcon]}>
-                    <Trash2 size={20} color="#fff" />
-                  </View>
-                  <View style={styles.textContainer}>
-                    <Text style={styles.clearButtonText}>Clear All Music</Text>
-                    <Text style={styles.clearButtonSubtitle}>Remove all songs from library</Text>
-                  </View>
-                </View>
-                <ChevronRight size={16} color="#fff" />
-              </TouchableOpacity>
-            </>
-          )}
+          <TouchableOpacity 
+            style={[styles.settingItem, styles.clearButton]} 
+            onPress={handleClearTracks}
+            disabled={tracks.length === 0}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, styles.destructiveIcon]}>
+                <Trash2 size={20} color="#fff" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={[styles.clearButtonText, tracks.length === 0 && styles.disabledText]}>
+                  Clear All Music
+                </Text>
+                <Text style={[styles.clearButtonSubtitle, tracks.length === 0 && styles.disabledText]}>
+                  {tracks.length === 0 ? 'No songs in library' : 'Remove all songs from library'}
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color={tracks.length === 0 ? "#666" : "#fff"} />
+          </TouchableOpacity>
         </View>
 
         {/* App Info Section */}
@@ -340,6 +346,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffaa66',
     marginTop: 2,
+  },
+  disabledText: {
+    opacity: 0.5,
   },
 });
 
