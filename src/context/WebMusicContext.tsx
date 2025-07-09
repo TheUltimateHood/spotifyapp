@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { webAudioPlayer } from '../utils/webAudioPlayer';
+import { databaseService } from '../services/databaseService';
 
 export interface Track {
   id: string;
@@ -73,6 +74,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
   const [queueIndex, setQueueIndex] = useState(0);
 
   useEffect(() => {
+    // Initialize audio player
     webAudioPlayer.setupPlayer();
     webAudioPlayer.setOnProgressUpdate((pos, dur) => {
       setPosition(pos);
@@ -81,7 +83,31 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     webAudioPlayer.setOnStateChange((playing) => {
       setIsPlaying(playing);
     });
+
+    // Load persisted data
+    loadPersistedData();
   }, []);
+
+  const loadPersistedData = async () => {
+    try {
+      const [persistedTracks, persistedPlaylists] = await Promise.all([
+        databaseService.getAllTracks(),
+        databaseService.getAllPlaylists(),
+      ]);
+
+      if (persistedTracks.length > 0) {
+        setTracks(persistedTracks);
+        console.log(`Loaded ${persistedTracks.length} tracks from storage`);
+      }
+
+      if (persistedPlaylists.length > 0) {
+        setPlaylists(persistedPlaylists);
+        console.log(`Loaded ${persistedPlaylists.length} playlists from storage`);
+      }
+    } catch (error) {
+      console.error('Error loading persisted data:', error);
+    }
+  };
 
   const playTrack = async (track: Track) => {
     try {
@@ -109,11 +135,45 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     setVolumeState(vol);
   };
 
-  const addTracks = (newTracks: Track[]) => {
-    setTracks(prevTracks => [...prevTracks, ...newTracks]);
+  const addTracks = async (newTracks: Track[]) => {
+    const savedTracks: Track[] = [];
+    
+    // Save each track to database/storage
+    for (const track of newTracks) {
+      try {
+        const trackData = {
+          id: track.id,
+          url: track.url,
+          title: track.title,
+          artist: track.artist,
+          album: track.album,
+          artwork: track.artwork,
+          duration: track.duration,
+          fileName: track.file?.name,
+          fileSize: track.file?.size,
+          mimeType: track.file?.type,
+          format: track.file?.name.split('.').pop()?.toUpperCase(),
+          isVideo: track.file?.type.startsWith('video/') || false,
+        };
+        
+        const savedTrack = await databaseService.createTrack(trackData);
+        savedTracks.push({ ...track, ...savedTrack });
+      } catch (error) {
+        console.error('Error saving track:', error);
+        savedTracks.push(track); // Fallback to memory-only
+      }
+    }
+    
+    setTracks(prevTracks => [...prevTracks, ...savedTracks]);
   };
 
-  const removeTrack = (trackId: string) => {
+  const removeTrack = async (trackId: string) => {
+    try {
+      await databaseService.deleteTrack(trackId);
+    } catch (error) {
+      console.error('Error deleting track from storage:', error);
+    }
+    
     setTracks(prevTracks => prevTracks.filter(track => track.id !== trackId));
     if (currentTrack?.id === trackId) {
       setCurrentTrack(null);
@@ -121,7 +181,13 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     }
   };
 
-  const clearTracks = () => {
+  const clearTracks = async () => {
+    try {
+      await databaseService.clearAllTracks();
+    } catch (error) {
+      console.error('Error clearing tracks from storage:', error);
+    }
+    
     setTracks([]);
     setCurrentTrack(null);
     webAudioPlayer.pause();
@@ -187,17 +253,41 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     });
   };
 
-  const createPlaylist = (name: string, trackIds: string[]) => {
-    const newPlaylist: Playlist = {
-      id: `playlist_${Date.now()}`,
-      name,
-      trackIds,
-      createdAt: new Date(),
-    };
-    setPlaylists(prev => [...prev, newPlaylist]);
+  const createPlaylist = async (name: string, trackIds: string[]) => {
+    try {
+      const playlistData = {
+        id: `playlist_${Date.now()}`,
+        name,
+        trackIds,
+      };
+      
+      const savedPlaylist = await databaseService.createPlaylist(playlistData);
+      const newPlaylist: Playlist = {
+        ...savedPlaylist,
+        createdAt: new Date(savedPlaylist.createdAt),
+      };
+      
+      setPlaylists(prev => [...prev, newPlaylist]);
+    } catch (error) {
+      console.error('Error saving playlist:', error);
+      // Fallback to memory-only
+      const newPlaylist: Playlist = {
+        id: `playlist_${Date.now()}`,
+        name,
+        trackIds,
+        createdAt: new Date(),
+      };
+      setPlaylists(prev => [...prev, newPlaylist]);
+    }
   };
 
-  const deletePlaylist = (playlistId: string) => {
+  const deletePlaylist = async (playlistId: string) => {
+    try {
+      await databaseService.deletePlaylist(playlistId);
+    } catch (error) {
+      console.error('Error deleting playlist from storage:', error);
+    }
+    
     setPlaylists(prev => prev.filter(p => p.id !== playlistId));
   };
 
