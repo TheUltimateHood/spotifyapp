@@ -116,7 +116,7 @@ Changelog:
 - July 09, 2025: Enhanced video file support with automatic audio extraction for music playback
 - July 09, 2025: Improved file type detection and processing with better error handling for unsupported formats
 - July 09, 2025: Implemented localStorage persistence for music library and playlists
-- July 09, 2025: Added database service with fallback to localStorage when database is unavailable
+- July 09, 2025: Removed database dependency - app is now completely local using only localStorage
 - July 09, 2025: Fixed app restart issue when adding songs - now maintains state properly
 ```
 
