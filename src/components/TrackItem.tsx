@@ -37,6 +37,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
     if (!showMenu) {
       onPress(); // Let the parent component handle selection mode vs playing
     }
+    setShowMenu(false); // Close menu if it was open
   };
 
   const handleDeletePress = () => {

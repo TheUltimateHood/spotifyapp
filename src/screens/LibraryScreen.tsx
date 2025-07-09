@@ -275,11 +275,11 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
         <View style={styles.trackItemContent}>
           <TrackItem
             track={item}
-            onPress={() => {
+            onPress={async () => {
               if (isSelectionMode) {
                 toggleTrackSelection(item.id);
               } else {
-                context.playTrack(item);
+                await context.playTrack(item);
                 onTrackSelect(item);
               }
             }}
