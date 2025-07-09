@@ -6,21 +6,18 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
-  Switch,
   ScrollView,
   Alert,
 } from 'react-native';
 import { 
-  Volume2, 
   Trash2,
   Database,
   Info,
   ChevronRight,
-  Repeat,
-  Shuffle,
   Download
 } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
+import TrackSelectionModal from '../components/TrackSelectionModal';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -37,16 +34,12 @@ const SettingsScreen: React.FC = () => {
   const { 
     tracks, 
     clearTracks,
-    shuffleMode,
-    repeatMode,
-    toggleShuffle,
-    toggleRepeat,
-    removeTrack,
-    volume,
-    setVolume
+    removeTrack
   } = context;
 
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [showDeleteSelectedConfirmation, setShowDeleteSelectedConfirmation] = useState(false);
+  const [showTrackSelectionModal, setShowTrackSelectionModal] = useState(false);
 
   const handleClearTracks = () => {
     setShowClearConfirmation(true);
@@ -72,14 +65,25 @@ const SettingsScreen: React.FC = () => {
     return formatFileSize(estimatedSize);
   };
 
-  const getRepeatModeText = () => {
-    switch (repeatMode) {
-      case 'off': return 'Off';
-      case 'all': return 'All';
-      case 'one': return 'One';
-      default: return 'Off';
-    }
+  const handleDeleteSelectedTracks = () => {
+    setShowTrackSelectionModal(true);
   };
+
+  const handleTrackSelectionConfirm = (selectedTrackIds: string[]) => {
+    setShowTrackSelectionModal(false);
+    setShowDeleteSelectedConfirmation(true);
+    setSelectedTracksForDeletion(selectedTrackIds);
+  };
+
+  const confirmDeleteSelectedTracks = () => {
+    selectedTracksForDeletion.forEach(trackId => {
+      removeTrack(trackId);
+    });
+    setShowDeleteSelectedConfirmation(false);
+    Alert.alert('Success', `${selectedTracksForDeletion.length} song(s) have been removed from your library`);
+  };
+
+  const [selectedTracksForDeletion, setSelectedTracksForDeletion] = useState<string[]>([]);
 
   const renderSettingItem = (item: any) => (
     <TouchableOpacity 
@@ -122,39 +126,6 @@ const SettingsScreen: React.FC = () => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Playback Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Playback</Text>
-          
-          {renderSettingItem({
-            icon: <Shuffle size={20} color="#fff" />,
-            title: 'Shuffle',
-            subtitle: 'Randomize playback order',
-            showSwitch: true,
-            switchValue: shuffleMode,
-            onToggle: toggleShuffle,
-          })}
-          
-          {renderSettingItem({
-            icon: <Repeat size={20} color="#fff" />,
-            title: 'Repeat',
-            subtitle: 'Control repeat behavior',
-            showValue: true,
-            value: getRepeatModeText(),
-            onPress: toggleRepeat,
-          })}
-          
-          {Platform.OS === 'web' && renderSettingItem({
-            icon: <Volume2 size={20} color="#fff" />,
-            title: 'Volume',
-            subtitle: `Audio output level: ${Math.round(volume * 100)}%`,
-            showValue: true,
-            value: `${Math.round(volume * 100)}%`,
-            onPress: () => {},
-            disabled: true,
-          })}
-        </View>
-
         {/* Storage Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Storage</Text>
@@ -168,21 +139,39 @@ const SettingsScreen: React.FC = () => {
           })}
           
           {tracks.length > 0 && (
-            <TouchableOpacity 
-              style={[styles.settingItem, styles.clearButton]} 
-              onPress={handleClearTracks}
-            >
-              <View style={styles.settingLeft}>
-                <View style={[styles.iconContainer, styles.destructiveIcon]}>
-                  <Trash2 size={20} color="#fff" />
+            <>
+              <TouchableOpacity 
+                style={[styles.settingItem, styles.warningButton]} 
+                onPress={handleDeleteSelectedTracks}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, styles.warningIcon]}>
+                    <Trash2 size={20} color="#fff" />
+                  </View>
+                  <View style={styles.textContainer}>
+                    <Text style={styles.warningButtonText}>Delete Selected Songs</Text>
+                    <Text style={styles.warningButtonSubtitle}>Choose specific songs to remove</Text>
+                  </View>
                 </View>
-                <View style={styles.textContainer}>
-                  <Text style={styles.clearButtonText}>Clear All Music</Text>
-                  <Text style={styles.clearButtonSubtitle}>Remove all songs from library</Text>
+                <ChevronRight size={16} color="#fff" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.settingItem, styles.clearButton]} 
+                onPress={handleClearTracks}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.iconContainer, styles.destructiveIcon]}>
+                    <Trash2 size={20} color="#fff" />
+                  </View>
+                  <View style={styles.textContainer}>
+                    <Text style={styles.clearButtonText}>Clear All Music</Text>
+                    <Text style={styles.clearButtonSubtitle}>Remove all songs from library</Text>
+                  </View>
                 </View>
-              </View>
-              <ChevronRight size={16} color="#fff" />
-            </TouchableOpacity>
+                <ChevronRight size={16} color="#fff" />
+              </TouchableOpacity>
+            </>
           )}
         </View>
 
@@ -212,10 +201,27 @@ const SettingsScreen: React.FC = () => {
         visible={showClearConfirmation}
         title="Clear All Music"
         message="This action will permanently remove all songs from your library. This cannot be undone."
-        confirmationText="Delete all songs in library"
+        confirmationText="Delete all songs from storage"
         onConfirm={confirmClearTracks}
         onCancel={() => setShowClearConfirmation(false)}
         destructive={true}
+      />
+
+      <ConfirmationModal
+        visible={showDeleteSelectedConfirmation}
+        title="Delete Selected Songs"
+        message={`This action will permanently remove ${selectedTracksForDeletion.length} song(s) from your library. This cannot be undone.`}
+        confirmationText="Delete selected songs"
+        onConfirm={confirmDeleteSelectedTracks}
+        onCancel={() => setShowDeleteSelectedConfirmation(false)}
+        destructive={true}
+      />
+
+      <TrackSelectionModal
+        visible={showTrackSelectionModal}
+        tracks={tracks}
+        onConfirm={handleTrackSelectionConfirm}
+        onCancel={() => setShowTrackSelectionModal(false)}
       />
     </SafeAreaView>
   );
@@ -314,6 +320,24 @@ const styles = StyleSheet.create({
   clearButtonSubtitle: {
     fontSize: 14,
     color: '#ff6666',
+    marginTop: 2,
+  },
+  warningButton: {
+    backgroundColor: '#2a1a1a',
+    borderWidth: 1,
+    borderColor: '#ff8844',
+  },
+  warningIcon: {
+    backgroundColor: '#ff8844',
+  },
+  warningButtonText: {
+    color: '#ff8844',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  warningButtonSubtitle: {
+    fontSize: 14,
+    color: '#ffaa66',
     marginTop: 2,
   },
 });
