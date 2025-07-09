@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Switch,
 } from 'react-native';
 import { 
   Trash2,
@@ -40,6 +41,7 @@ const SettingsScreen: React.FC = () => {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showDeleteSelectedConfirmation, setShowDeleteSelectedConfirmation] = useState(false);
   const [showTrackSelectionModal, setShowTrackSelectionModal] = useState(false);
+  const [selectedTracksForDeletion, setSelectedTracksForDeletion] = useState<string[]>([]);
 
   const handleClearTracks = () => {
     setShowClearConfirmation(true);
@@ -80,10 +82,9 @@ const SettingsScreen: React.FC = () => {
       removeTrack(trackId);
     });
     setShowDeleteSelectedConfirmation(false);
+    setSelectedTracksForDeletion([]);
     Alert.alert('Success', `${selectedTracksForDeletion.length} song(s) have been removed from your library`);
   };
-
-  const [selectedTracksForDeletion, setSelectedTracksForDeletion] = useState<string[]>([]);
 
   const renderSettingItem = (item: any) => (
     <TouchableOpacity 

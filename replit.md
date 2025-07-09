@@ -108,6 +108,10 @@ Changelog:
 - July 08, 2025: Moved shuffle/repeat controls above navigation bar for better accessibility
 - July 08, 2025: Streamlined track items to focus on song title and artist without artwork clutter
 - July 08, 2025: Improved bulk selection mode with visual feedback and intuitive controls
+- July 09, 2025: Successfully migrated project from Replit Agent to standard Replit environment
+- July 09, 2025: Enhanced storage management in Settings with individual track deletion and clear all functionality
+- July 09, 2025: Added TrackSelectionModal for bulk track selection with confirmation dialogs
+- July 09, 2025: Implemented typed confirmation for dangerous actions requiring exact text input
 ```
 
 ## User Preferences
