@@ -60,8 +60,8 @@ interface MusicProviderProps {
 }
 
 export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -102,7 +102,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
             }
           }
         }
-        
+
         if (nextIndex < currentQueue.length) {
           const nextTrack = currentQueue[nextIndex];
           setCurrentTrack(nextTrack);
@@ -188,7 +188,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
       localStorage.setItem('music_tracks', JSON.stringify(updatedTracks));
       return updatedTracks;
     });
-    
+
     if (currentTrack?.id === trackId) {
       setCurrentTrack(null);
       webAudioPlayer.pause();
@@ -216,11 +216,11 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
       const availableIndices = queue
         .map((_, index) => index)
         .filter(index => index !== queueIndex);
-      
+
       if (availableIndices.length === 0) {
         return repeatMode === 'all' ? queue[0] : null;
       }
-      
+
       nextIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     } else {
       nextIndex = (queueIndex + 1) % queue.length;
@@ -243,7 +243,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
   const previousTrack = async () => {
     const queue = playQueue.length > 0 ? playQueue : tracks;
     if (!currentTrack || queue.length === 0) return;
-    
+
     const prevIndex = queueIndex === 0 ? queue.length - 1 : queueIndex - 1;
     setQueueIndex(prevIndex);
     await playTrack(queue[prevIndex]);
@@ -270,7 +270,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
       trackIds,
       createdAt: new Date(),
     };
-    
+
     setPlaylists(prevPlaylists => {
       const updatedPlaylists = [...prevPlaylists, newPlaylist];
       // Save to localStorage

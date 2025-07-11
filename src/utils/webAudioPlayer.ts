@@ -1,5 +1,6 @@
 export class WebAudioPlayer {
   private audio: HTMLAudioElement | null = null;
+  private currentTrackId: string | null = null;
   private onProgressUpdate: ((position: number, duration: number) => void) | null = null;
   private onStateChange: ((isPlaying: boolean) => void) | null = null;
   private onTrackEnded: (() => void) | null = null;
@@ -12,6 +13,12 @@ export class WebAudioPlayer {
       this.audio.addEventListener('play', () => this.updateState(true));
       this.audio.addEventListener('pause', () => this.updateState(false));
       this.audio.addEventListener('loadedmetadata', () => this.startProgressTracking());
+      
+      // Restore saved volume
+      const savedVolume = localStorage.getItem('musicPlayerVolume');
+      if (savedVolume) {
+        this.audio.volume = parseFloat(savedVolume);
+      }
     }
   }
 
@@ -43,12 +50,19 @@ export class WebAudioPlayer {
 
   async setVolume(volume: number) {
     if (this.audio) {
-      this.audio.volume = Math.max(0, Math.min(1, volume));
+      const clampedVolume = Math.max(0, Math.min(1, volume));
+      this.audio.volume = clampedVolume;
+      localStorage.setItem('musicPlayerVolume', clampedVolume.toString());
     }
   }
 
   getVolume(): number {
-    return this.audio?.volume || 1;
+    if (this.audio) {
+      return this.audio.volume;
+    }
+    // Return saved volume or default
+    const savedVolume = localStorage.getItem('musicPlayerVolume');
+    return savedVolume ? parseFloat(savedVolume) : 1;
   }
 
   getDuration(): number {
