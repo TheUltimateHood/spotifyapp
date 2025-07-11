@@ -1,20 +1,26 @@
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
-import { MoreVertical, Heart, Plus, Trash2, Share2, ListPlus } from 'lucide-react';
+import { MoreVertical, Heart, Plus, Trash2, Share2, ListPlus, PlayCircle } from 'lucide-react';
 
 interface ContextMenuProps {
   visible: boolean;
+  x: number;
+  y: number;
   onClose: () => void;
   track?: any;
   playlist?: any;
-  onAddToPlaylist?: () => void;
-  onRemoveFromLibrary?: () => void;
-  onRemoveFromPlaylist?: () => void;
-  onAddToQueue?: () => void;
+  onAddToPlaylist?: (track: any) => void;
+  onRemoveFromLibrary?: (track: any) => void;
+  onRemoveFromPlaylist?: (track: any) => void;
+  onAddToQueue?: (track: any) => void;
+  onPlayNext?: (track: any) => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   visible,
+  x,
+  y,
   onClose,
   track,
   playlist,
@@ -22,6 +28,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onRemoveFromLibrary,
   onRemoveFromPlaylist,
   onAddToQueue,
+  onPlayNext,
 }) => {
   const [position, setPosition] = useState({ x, y });
 
@@ -55,7 +62,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       label: 'Add to Queue',
       icon: Plus,
       action: () => {
-        onAddToQueue(track);
+        if (onAddToQueue) {
+          onAddToQueue(track);
+        }
         onClose();
       },
     },
@@ -63,7 +72,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       label: 'Play Next',
       icon: PlayCircle,
       action: () => {
-        onPlayNext(track);
+        if (onPlayNext) {
+          onPlayNext(track);
+        }
         onClose();
       },
     },
@@ -141,18 +152,44 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       <TouchableOpacity style={styles.overlay} onPress={onClose}>
         <View style={[styles.menu, { left: position.x, top: position.y }]}>
           {onAddToQueue && (
-              <TouchableOpacity style={styles.menuItem} onPress={onAddToQueue}>
-                <ListPlus size={20} color="#fff" />
-                <Text style={styles.menuText}>Add to Queue</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              onAddToQueue(track);
+              onClose();
+            }}>
+              <ListPlus size={20} color="#fff" />
+              <Text style={styles.menuText}>Add to Queue</Text>
+            </TouchableOpacity>
+          )}
 
-            {onAddToPlaylist && (
-              <TouchableOpacity style={styles.menuItem} onPress={onAddToPlaylist}>
-                <Plus size={20} color="#fff" />
-                <Text style={styles.menuText}>Add to Playlist</Text>
-              </TouchableOpacity>
-            )}
+          {onPlayNext && (
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              onPlayNext(track);
+              onClose();
+            }}>
+              <PlayCircle size={20} color="#fff" />
+              <Text style={styles.menuText}>Play Next</Text>
+            </TouchableOpacity>
+          )}
+
+          {onAddToPlaylist && (
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              onAddToPlaylist(track);
+              onClose();
+            }}>
+              <Plus size={20} color="#fff" />
+              <Text style={styles.menuText}>Add to Playlist</Text>
+            </TouchableOpacity>
+          )}
+
+          {onRemoveFromPlaylist && (
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              onRemoveFromPlaylist(track);
+              onClose();
+            }}>
+              <Trash2 size={20} color="#fff" />
+              <Text style={styles.menuText}>Remove from Playlist</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     </Modal>

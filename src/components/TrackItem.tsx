@@ -105,13 +105,18 @@ const TrackItem: React.FC<TrackItemProps> = ({
         y={menuPosition.y}
         track={track}
         onClose={() => setShowContextMenu(false)}
-        onAddToQueue={() => {
+        onAddToQueue={(track) => {
           setShowContextMenu(false);
           if (context?.addToQueue) {
             context.addToQueue(track);
           }
         }}
-        onPlayNext={playNext}
+        onPlayNext={(track) => {
+          setShowContextMenu(false);
+          if (context?.playNext) {
+            context.playNext(track);
+          }
+        }}
         onRemoveFromPlaylist={onRemoveFromPlaylist}
       />
     </>

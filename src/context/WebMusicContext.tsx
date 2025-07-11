@@ -44,6 +44,7 @@ interface MusicContextType {
   createPlaylist: (name: string, trackIds: string[]) => void;
   deletePlaylist: (playlistId: string) => void;
   addToQueue: (track: Track) => void;
+  playNext: (track: Track) => void;
   clearQueue: () => void;
   removeFromQueue: (index: number) => void;
   updatePlaylistName?: (playlistId: string, newName: string) => void;
@@ -294,6 +295,14 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     setPlayQueue(prevQueue => [...prevQueue, track]);
   };
 
+  const playNext = (track: Track) => {
+    setPlayQueue(prevQueue => {
+      const newQueue = [...prevQueue];
+      newQueue.splice(queueIndex + 1, 0, track);
+      return newQueue;
+    });
+  };
+
   const clearQueue = () => {
     setPlayQueue([]);
     setQueueIndex(0);
@@ -346,6 +355,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
         createPlaylist,
         deletePlaylist,
         addToQueue,
+        playNext,
         clearQueue,
         removeFromQueue,
         updatePlaylistName,
