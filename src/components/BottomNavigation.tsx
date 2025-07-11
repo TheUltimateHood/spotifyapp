@@ -45,7 +45,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: 'fixed',
     bottom: 0,
     left: 0,
     right: 0,
@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 0.5,
     borderTopColor: '#333',
-    zIndex: 1000,
+    zIndex: 9999,
+    width: '100%',
   },
   tab: {
     flex: 1,

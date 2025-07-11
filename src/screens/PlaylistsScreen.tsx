@@ -5,13 +5,13 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
+  SafeAreaView,
   Modal,
   TextInput,
   Alert,
 } from 'react-native';
-import { Plus, Music, Trash2, Play, MoreVertical } from 'lucide-react';
+import { Plus, Music, MoreVertical, Trash2, Edit3 } from 'lucide-react';
 import ModernCard from '../components/ModernCard';
 import ModernButton from '../components/ModernButton';
 import TrackItem from '../components/TrackItem';
@@ -30,14 +30,17 @@ interface PlaylistsScreenProps {
   onTrackSelect: (track: any) => void;
 }
 
+import PlaylistEditModal from '../components/PlaylistEditModal';
+
 const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
   const context = useMusicContext();
-  const { playlists, tracks, createPlaylist, deletePlaylist, currentTrack } = context;
-  
+  const { playlists, tracks, createPlaylist, deletePlaylist, updatePlaylistName, currentTrack } = context;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showPlaylistTracks, setShowPlaylistTracks] = useState<string | null>(null);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
+  const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
 
   const handleCreatePlaylist = () => {
     if (newPlaylistName.trim()) {
@@ -77,7 +80,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
 
   const renderPlaylistItem = ({ item: playlist }: { item: any }) => {
     const playlistTracks = getPlaylistTracks(playlist);
-    
+
     return (
       <ModernCard style={styles.playlistCard}>
         <TouchableOpacity 
@@ -87,14 +90,14 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
           <View style={styles.playlistIcon}>
             <Music size={32} color="#1db954" />
           </View>
-          
+
           <View style={styles.playlistInfo}>
             <Text style={styles.playlistName}>{playlist.name}</Text>
             <Text style={styles.playlistStats}>
               {playlistTracks.length} {playlistTracks.length === 1 ? 'song' : 'songs'}
             </Text>
           </View>
-          
+
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeletePlaylist(playlist.id)}
@@ -139,7 +142,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
   if (showPlaylistTracks) {
     const playlist = playlists.find((p: any) => p.id === showPlaylistTracks);
     const playlistTracks = getPlaylistTracks(playlist);
-    
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -151,7 +154,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
             <MoreVertical size={24} color="#1db954" />
           </TouchableOpacity>
         </View>
-        
+
         <FlatList
           data={playlistTracks}
           renderItem={renderTrackItem}
@@ -210,7 +213,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Create New Playlist</Text>
-            
+
             <TextInput
               style={styles.input}
               placeholder="Enter playlist name"
@@ -219,7 +222,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
               onChangeText={setNewPlaylistName}
               autoFocus
             />
-            
+
             <Text style={styles.sectionTitle}>Select Songs (Optional)</Text>
             <FlatList
               data={tracks}
@@ -228,7 +231,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
               style={styles.trackSelectionList}
               showsVerticalScrollIndicator={false}
             />
-            
+
             <View style={styles.modalButtons}>
               <ModernButton
                 variant="outline"
@@ -250,6 +253,16 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
           </View>
         </View>
       </Modal>
+
+      <PlaylistEditModal
+        visible={!!editingPlaylist}
+        playlist={editingPlaylist}
+        onClose={() => setEditingPlaylist(null)}
+        onSave={(playlistId, newName) => {
+          updatePlaylistName?.(playlistId, newName);
+          setEditingPlaylist(null);
+        }}
+      />
     </SafeAreaView>
   );
 };

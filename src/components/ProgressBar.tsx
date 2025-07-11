@@ -32,15 +32,22 @@ const ProgressBar: React.FC = () => {
     const progress = (position / (duration || 1)) * 100;
     
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
-      const newPosition = (clickX / rect.width) * (duration || 1);
+      const newPosition = Math.max(0, Math.min((clickX / rect.width) * (duration || 1), duration || 1));
       handleSeek(newPosition);
     };
 
     return (
       <div 
         onClick={handleProgressClick}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const hoverX = e.clientX - rect.left;
+          const hoverProgress = (hoverX / rect.width) * 100;
+          e.currentTarget.style.setProperty('--hover-progress', `${hoverProgress}%`);
+        }}
         style={{
           width: '100%',
           height: 8,
@@ -49,7 +56,10 @@ const ProgressBar: React.FC = () => {
           cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
+          transition: 'height 0.2s ease',
         }}
+        onMouseEnter={(e) => e.currentTarget.style.height = '10px'}
+        onMouseLeave={(e) => e.currentTarget.style.height = '8px'}
       >
         <div
           style={{

@@ -51,7 +51,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTracks, setFilteredTracks] = useState(tracks);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
-  
+
   const handleCreatePlaylist = (name: string, trackIds: string[]) => {
     if (createPlaylist) {
       createPlaylist(name, trackIds);
@@ -102,7 +102,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
   const pickAudioFiles = async () => {
     try {
       setLoading(true);
-      
+
       if (Platform.OS === 'web') {
         // Web file picker
         if (!fileInputRef.current) {
@@ -111,22 +111,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
           input.accept = 'audio/*,video/*,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4,.avi,.mov,.mkv,.webm,.3gp,.wmv,.asf,.amr,.aiff,.opus';
           input.multiple = true;
           input.style.display = 'none';
-          
+
           input.onchange = async (e: Event) => {
             const target = e.target as HTMLInputElement;
             const files = Array.from(target.files || []);
-            
+
             console.log(`Starting to process ${files.length} files...`);
-            
+
             try {
               const { successful, failed } = await processMultipleAudioFiles(files);
-              
+
               console.log(`Processing complete: ${successful.length} successful, ${failed.length} failed`);
-              
+
               if (successful.length > 0) {
                 addTracks(successful);
               }
-              
+
               let message = '';
               if (successful.length > 0) {
                 message += `Added ${successful.length} track(s) to your library`;
@@ -135,7 +135,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
                 message += successful.length > 0 ? '\n' : '';
                 message += `Failed to process ${failed.length} file(s): ${failed.map(f => f.file.name).join(', ')}`;
               }
-              
+
               Alert.alert(successful.length > 0 ? 'Success' : 'Error', message);
             } catch (error) {
               console.error('Error processing files:', error);
@@ -144,11 +144,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
               setLoading(false);
             }
           };
-          
+
           document.body.appendChild(input);
           fileInputRef.current = input;
         }
-        
+
         fileInputRef.current.click();
       } else {
         // Native file picker
@@ -294,7 +294,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
           </TouchableOpacity>
         </ModernCard>
       )}
-      
+
       {createPlaylist && (
         <PlaylistModal
           visible={showPlaylistModal}
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000', // Deep black background
+    paddingBottom: 120,
   },
   header: {
     paddingTop: 20,

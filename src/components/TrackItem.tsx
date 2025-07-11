@@ -88,7 +88,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
             </Text>
           </View>
         </TouchableOpacity>
-        
+
         {showDeleteOption && (
           <View style={styles.menuContainer}>
             <TouchableOpacity
@@ -98,7 +98,7 @@ const TrackItem: React.FC<TrackItemProps> = ({
             >
               <MoreVertical size={16} color="#666" />
             </TouchableOpacity>
-            
+
             {showMenu && (
               <View style={styles.menuDropdown}>
                 <TouchableOpacity

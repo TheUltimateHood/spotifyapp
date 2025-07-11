@@ -67,12 +67,7 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
         </View>
 
         <View style={styles.content}>
-          <View style={styles.visualizerContainer}>
-            <AudioVisualizer 
-              isPlaying={isPlaying} 
-              style={styles.visualizer}
-            />
-          </View>
+          
 
           <View style={styles.trackInfo}>
             <Text style={[styles.trackTitle, Platform.OS === 'web' && { className: 'gradient-text' }]} numberOfLines={2}>
@@ -91,9 +86,7 @@ const PlayerScreen: React.FC<PlayerScreenProps> = ({ navigation: navProp }) => {
             <PlayerControls mini={false} />
           </View>
           
-          <View style={styles.volumeContainer}>
-            <VolumeControl />
-          </View>
+          
         </View>
       </SafeAreaView>
     </GradientBackground>
