@@ -98,12 +98,21 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ onTrackSelect }) => {
             </Text>
           </View>
 
+          <View style={styles.playlistActions}>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => setEditingPlaylist(playlist)}
+          >
+            <Edit3 size={20} color="#1db954" />
+          </TouchableOpacity>
+
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeletePlaylist(playlist.id)}
           >
             <Trash2 size={20} color="#ff6b6b" />
           </TouchableOpacity>
+        </View>
         </TouchableOpacity>
       </ModernCard>
     );
@@ -442,6 +451,13 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
     marginHorizontal: 8,
+  },
+  playlistActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButton: {
+    padding: 8,
   },
 });
 

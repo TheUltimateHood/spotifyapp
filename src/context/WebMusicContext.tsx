@@ -255,11 +255,9 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
 
   const toggleRepeat = () => {
     setRepeatMode(prev => {
-      switch (prev) {
-        case 'off': return 'all';
-        case 'all': return 'one';
-        case 'one': return 'off';
-      }
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
     });
   };
 

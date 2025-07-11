@@ -1,6 +1,21 @@
+
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Repeat1,
+} from 'lucide-react';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -13,72 +28,118 @@ if (Platform.OS === 'web') {
 }
 
 interface PlayerControlsProps {
-  mini: boolean;
+  mini?: boolean;
 }
 
-const PlayerControls: React.FC<PlayerControlsProps> = ({ mini }) => {
-  const { 
-    currentTrack, 
-    isPlaying, 
-    pauseTrack, 
-    resumeTrack, 
-    nextTrack, 
-    previousTrack 
-  } = useMusicContext();
+const PlayerControls: React.FC<PlayerControlsProps> = ({ mini = false }) => {
+  const context = useMusicContext();
+  const {
+    isPlaying,
+    togglePlayback,
+    skipToNext,
+    skipToPrevious,
+    shuffleMode,
+    repeatMode,
+    toggleShuffle,
+    toggleRepeat,
+  } = context;
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      pauseTrack();
-    } else {
-      resumeTrack();
+  const getRepeatIcon = () => {
+    switch (repeatMode) {
+      case 'one':
+        return Repeat1;
+      case 'all':
+        return Repeat;
+      default:
+        return Repeat;
     }
   };
 
-  if (!currentTrack) {
-    return null;
-  }
+  const getRepeatColor = () => {
+    return repeatMode !== 'off' ? '#1db954' : '#666';
+  };
 
   if (mini) {
     return (
       <View style={styles.miniContainer}>
-        <View style={styles.miniTrackInfo}>
-          <Text style={styles.miniTitle} numberOfLines={1}>
-            {currentTrack.title}
-          </Text>
-          <Text style={styles.miniArtist} numberOfLines={1}>
-            {currentTrack.artist}
-          </Text>
-        </View>
-        <View style={styles.miniControls}>
-          <TouchableOpacity onPress={handlePlayPause} style={styles.miniPlayButton}>
-            {isPlaying ? (
-              <Pause size={18} color="#fff" fill="#fff" />
-            ) : (
-              <Play size={18} color="#fff" fill="#fff" />
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.miniButton}
+          onPress={skipToPrevious}
+        >
+          <SkipBack size={20} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.miniButton, styles.playButton]}
+          onPress={togglePlayback}
+        >
+          {isPlaying ? (
+            <Pause size={24} color="#000" />
+          ) : (
+            <Play size={24} color="#000" />
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.miniButton}
+          onPress={skipToNext}
+        >
+          <SkipForward size={20} color="#fff" />
+        </TouchableOpacity>
       </View>
     );
   }
 
+  const RepeatIcon = getRepeatIcon();
+
   return (
     <View style={styles.container}>
-      <View style={styles.controls}>
-        <TouchableOpacity onPress={previousTrack} style={styles.controlButton}>
-          <SkipBack size={24} color="#fff" fill="#fff" />
+      <View style={styles.secondaryControls}>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={toggleShuffle}
+        >
+          <Shuffle 
+            size={24} 
+            color={shuffleMode ? '#1db954' : '#666'} 
+          />
         </TouchableOpacity>
-        
-        <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={toggleRepeat}
+        >
+          <RepeatIcon 
+            size={24} 
+            color={getRepeatColor()}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.mainControls}>
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={skipToPrevious}
+        >
+          <SkipBack size={32} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.playPauseButton}
+          onPress={togglePlayback}
+        >
           {isPlaying ? (
-            <Pause size={32} color="#fff" fill="#fff" />
+            <Pause size={36} color="#000" />
           ) : (
-            <Play size={32} color="#fff" fill="#fff" />
+            <Play size={36} color="#000" />
           )}
         </TouchableOpacity>
-        
-        <TouchableOpacity onPress={nextTrack} style={styles.controlButton}>
-          <SkipForward size={24} color="#fff" fill="#fff" />
+
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={skipToNext}
+        >
+          <SkipForward size={32} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
@@ -88,90 +149,69 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ mini }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 8,
   },
-  controls: {
+  secondaryControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 40,
+    marginBottom: 32,
+  },
+  secondaryButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#282828',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mainControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
   controlButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#323232',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#282828',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: '#404040',
+    marginHorizontal: 16,
   },
-  playButton: {
+  playPauseButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: '#1db954',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     shadowColor: '#1db954',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
     elevation: 8,
-    borderWidth: 2,
-    borderColor: '#1ed760',
   },
   miniContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: '#282828',
-    borderRadius: 12,
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  miniTrackInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
-  miniTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 3,
-  },
-  miniArtist: {
-    fontSize: 13,
-    color: '#b3b3b3',
-    fontWeight: '500',
-  },
-  miniControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  miniPlayButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1db954',
+  miniButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1db954',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+  },
+  playButton: {
+    backgroundColor: '#1db954',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
 });
 
