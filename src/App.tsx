@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Platform, View, StyleSheet } from 'react-native';
 import { StatusBar } from 'react-native';
@@ -24,7 +23,7 @@ if (Platform.OS !== 'web') {
     TrackPlayer = require('react-native-track-player').default;
     const { playbackService } = require('./services/playbackService');
     TrackPlayer.registerPlaybackService(() => playbackService);
-    
+
     // Import navigation for native
     const { NavigationContainer: NavContainer } = require('@react-navigation/native');
     const { createStackNavigator: createStack } = require('@react-navigation/stack');
@@ -41,7 +40,7 @@ function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
   const [activeTab, setActiveTab] = useState('Home');
   const [showPlayerModal, setShowPlayerModal] = useState(false);
-  
+
   console.log('App component loading, Platform.OS:', Platform.OS);
   console.log('isPlayerReady:', isPlayerReady);
 
@@ -55,7 +54,7 @@ function App(): JSX.Element {
           console.log('Error setting up player:', error);
         }
       };
-      
+
       setupPlayer();
     }
   }, []);
@@ -93,9 +92,9 @@ function App(): JSX.Element {
   const ShuffleRepeatControlsBar = () => {
     const context = useMusicContext();
     const { currentTrack, shuffleMode, repeatMode, toggleShuffle, toggleRepeat } = context;
-    
+
     if (!currentTrack || !toggleShuffle || !toggleRepeat) return null;
-    
+
     return (
       <View style={styles.shuffleRepeatBar}>
         <ShuffleRepeatControls 
@@ -189,6 +188,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingBottom: Platform.OS === 'ios' ? 90 : 80,
   },
   playerModal: {
     position: 'absolute',
