@@ -56,7 +56,16 @@ const TrackItem: React.FC<TrackItemProps> = ({
           styles.container,
           isCurrentTrack && styles.currentTrack,
         ]}
-        onPress={onPress}
+        onPress={async () => {
+          // Play the track using context
+          if (context?.playTrack) {
+            await context.playTrack(track);
+          }
+          // Call the original onPress if provided
+          if (onPress) {
+            onPress();
+          }
+        }}
         activeOpacity={0.7}
       >
         <TouchableOpacity

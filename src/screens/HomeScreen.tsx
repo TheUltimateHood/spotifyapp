@@ -204,7 +204,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
   const renderTrackItem = ({ item }: { item: Track }) => (
     <TrackItem
       track={item}
-      onPress={() => navigation.navigate('Player' as never)}
+      onPress={async () => {
+        const context = useMusicContext();
+        if (context?.playTrack) {
+          await context.playTrack(item);
+        }
+        navigation.navigate('Player' as never);
+      }}
       isCurrentTrack={currentTrack?.id === item.id}
     />
   );

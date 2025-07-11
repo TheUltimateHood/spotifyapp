@@ -75,8 +75,11 @@ function App(): JSX.Element {
   console.log('Rendering main app');
 
   const handleTrackSelect = async (track: any) => {
-    // Track is already playing from the screen component
-    // Just show the player modal
+    // Get the music context and play the track
+    const context = useMusicContext();
+    if (context?.playTrack) {
+      await context.playTrack(track);
+    }
     setShowPlayerModal(true);
   };
 
