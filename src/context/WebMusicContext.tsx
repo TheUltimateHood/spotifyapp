@@ -43,6 +43,10 @@ interface MusicContextType {
   toggleRepeat: () => void;
   createPlaylist: (name: string, trackIds: string[]) => void;
   deletePlaylist: (playlistId: string) => void;
+  addToQueue: (track: Track) => void;
+  clearQueue: () => void;
+  removeFromQueue: (index: number) => void;
+  updatePlaylistName?: (playlistId: string, newName: string) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -286,6 +290,35 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     });
   };
 
+  const addToQueue = (track: Track) => {
+    setPlayQueue(prevQueue => [...prevQueue, track]);
+  };
+
+  const clearQueue = () => {
+    setPlayQueue([]);
+    setQueueIndex(0);
+  };
+
+  const removeFromQueue = (index: number) => {
+    setPlayQueue(prevQueue => prevQueue.filter((_, i) => i !== index));
+    if (queueIndex >= index && queueIndex > 0) {
+      setQueueIndex(prev => prev - 1);
+    }
+  };
+
+  const updatePlaylistName = (playlistId: string, newName: string) => {
+    setPlaylists(prevPlaylists => {
+      const updatedPlaylists = prevPlaylists.map(playlist => 
+        playlist.id === playlistId 
+          ? { ...playlist, name: newName }
+          : playlist
+      );
+      // Save to localStorage
+      localStorage.setItem('music_playlists', JSON.stringify(updatedPlaylists));
+      return updatedPlaylists;
+    });
+  };
+
   return (
     <MusicContext.Provider
       value={{
@@ -312,6 +345,10 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
         toggleRepeat,
         createPlaylist,
         deletePlaylist,
+        addToQueue,
+        clearQueue,
+        removeFromQueue,
+        updatePlaylistName,
       }}
     >
       {children}

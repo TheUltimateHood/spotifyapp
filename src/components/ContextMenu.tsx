@@ -1,28 +1,27 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
-import { Plus, PlayCircle, Trash2 } from 'lucide-react';
+import { MoreVertical, Heart, Plus, Trash2, Share2, ListPlus } from 'lucide-react';
 
 interface ContextMenuProps {
   visible: boolean;
-  x: number;
-  y: number;
-  track: any;
   onClose: () => void;
-  onAddToQueue: (track: any) => void;
-  onPlayNext: (track: any) => void;
-  onRemoveFromPlaylist?: (track: any) => void;
+  track?: any;
+  playlist?: any;
+  onAddToPlaylist?: () => void;
+  onRemoveFromLibrary?: () => void;
+  onRemoveFromPlaylist?: () => void;
+  onAddToQueue?: () => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   visible,
-  x,
-  y,
-  track,
   onClose,
-  onAddToQueue,
-  onPlayNext,
+  track,
+  playlist,
+  onAddToPlaylist,
+  onRemoveFromLibrary,
   onRemoveFromPlaylist,
+  onAddToQueue,
 }) => {
   const [position, setPosition] = useState({ x, y });
 
@@ -33,18 +32,18 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       const viewportHeight = window.innerHeight;
       const menuWidth = 200;
       const menuHeight = 150;
-      
+
       let adjustedX = x;
       let adjustedY = y;
-      
+
       if (x + menuWidth > viewportWidth) {
         adjustedX = viewportWidth - menuWidth - 10;
       }
-      
+
       if (y + menuHeight > viewportHeight) {
         adjustedY = viewportHeight - menuHeight - 10;
       }
-      
+
       setPosition({ x: adjustedX, y: adjustedY });
     }
   }, [x, y]);
@@ -141,15 +140,19 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     <Modal transparent visible={visible} onRequestClose={onClose}>
       <TouchableOpacity style={styles.overlay} onPress={onClose}>
         <View style={[styles.menu, { left: position.x, top: position.y }]}>
-          {menuItems.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <TouchableOpacity key={index} style={styles.menuItem} onPress={item.action}>
-                <IconComponent size={16} color="#fff" />
-                <Text style={styles.menuText}>{item.label}</Text>
+          {onAddToQueue && (
+              <TouchableOpacity style={styles.menuItem} onPress={onAddToQueue}>
+                <ListPlus size={20} color="#fff" />
+                <Text style={styles.menuText}>Add to Queue</Text>
               </TouchableOpacity>
-            );
-          })}
+            )}
+
+            {onAddToPlaylist && (
+              <TouchableOpacity style={styles.menuItem} onPress={onAddToPlaylist}>
+                <Plus size={20} color="#fff" />
+                <Text style={styles.menuText}>Add to Playlist</Text>
+              </TouchableOpacity>
+            )}
         </View>
       </TouchableOpacity>
     </Modal>

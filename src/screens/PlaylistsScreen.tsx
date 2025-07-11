@@ -308,6 +308,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContent: {
+    paddingTop: 20,
     paddingBottom: 100,
   },
   playlistCard: {
