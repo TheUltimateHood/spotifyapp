@@ -148,6 +148,10 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
       setCurrentTrack(track);
     } catch (error) {
       console.error('Error playing track:', error);
+      // You could add a toast notification here
+      if (typeof window !== 'undefined') {
+        window.alert(`Failed to play "${track.title}". The file may be corrupted or in an unsupported format.`);
+      }
     }
   };
 

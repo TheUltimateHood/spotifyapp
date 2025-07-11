@@ -12,6 +12,7 @@ import MiniPlayer from './components/MiniPlayer';
 import ShuffleRepeatControls from './components/ShuffleRepeatControls';
 import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Conditional imports for native vs web
 let TrackPlayer: any;
@@ -151,27 +152,16 @@ function App(): JSX.Element {
 
   // Native version with bottom navigation (same as web but with native navigation)
   return (
-    <Provider>
-      <NavigationContainer>
-        <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
-        <View style={styles.container}>
-          <View style={styles.content}>
-            {renderCurrentScreen()}
-          </View>
-          <MiniPlayer onPress={() => setShowPlayerModal(true)} />
-          <ShuffleRepeatControlsBar />
-          <BottomNavigation 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
-          {showPlayerModal && (
-            <View style={styles.playerModal}>
-              <PlayerScreen navigation={{ goBack: () => setShowPlayerModal(false) }} />
-            </View>
-          )}
-        </View>
-      </NavigationContainer>
-    </Provider>
+    <ErrorBoundary>
+      <MusicProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen name="Player" component={PlayerScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </MusicProvider>
+    </ErrorBoundary>
   );
 }
 
