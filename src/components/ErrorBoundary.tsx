@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorCard: {
+    padding: 30,
     alignItems: 'center',
     maxWidth: 400,
     width: '100%',
@@ -81,42 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 12,
-  },
-  message: {
-    fontSize: 16,
-    color: '#b3b3b3',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  refreshButton: {
-    width: '100%',
-  },
-});
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#121212',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorCard: {
-    padding: 30,
-    alignItems: 'center',
-    maxWidth: 400,
-  },
-  iconContainer: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 15,
-    textAlign: 'center',
   },
   message: {
     fontSize: 16,
