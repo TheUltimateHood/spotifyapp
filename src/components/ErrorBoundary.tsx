@@ -49,7 +49,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
                 }
               }}
               style={styles.refreshButton}
-              icon={<RefreshCw size={20} color="#000" />}
+              icon={<RefreshCw size={20} color="#fff" />}
             />
           </ModernCard>
         </View>
@@ -59,6 +59,41 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     return this.props.children;
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212',
+    padding: 20,
+  },
+  errorCard: {
+    alignItems: 'center',
+    maxWidth: 400,
+    width: '100%',
+  },
+  iconContainer: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  message: {
+    fontSize: 16,
+    color: '#b3b3b3',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  refreshButton: {
+    width: '100%',
+  },
+});
 
 const styles = StyleSheet.create({
   container: {

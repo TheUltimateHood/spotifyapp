@@ -5,52 +5,53 @@ import { Music, Plus, Search, List } from 'lucide-react';
 import ModernButton from './ModernButton';
 import ModernCard from './ModernCard';
 
+export type EmptyStateType = 'library' | 'search' | 'playlist' | 'tracks';
+
 interface EmptyStateProps {
-  type: 'tracks' | 'playlists' | 'search' | 'playlist-tracks';
+  type: EmptyStateType;
   onAction?: () => void;
-  actionText?: string;
 }
 
-export default function EmptyState({ type, onAction, actionText }: EmptyStateProps) {
+const EmptyState: React.FC<EmptyStateProps> = ({ type, onAction }) => {
   const getContent = () => {
     switch (type) {
-      case 'tracks':
+      case 'library':
         return {
-          icon: <Music size={64} color="#535353" />,
-          title: 'No music yet',
-          message: 'Add some tracks to get started with your music library.',
-          action: actionText || 'Add Music',
-          actionIcon: <Plus size={20} color="#000" />,
-        };
-      case 'playlists':
-        return {
-          icon: <List size={64} color="#535353" />,
-          title: 'No playlists',
-          message: 'Create your first playlist to organize your music.',
-          action: actionText || 'Create Playlist',
-          actionIcon: <Plus size={20} color="#000" />,
+          icon: <Music size={64} color="#666" />,
+          title: 'Your library is empty',
+          message: 'Add some music files to get started with your collection.',
+          action: 'Add Music',
+          actionIcon: <Plus size={20} color="#fff" />,
         };
       case 'search':
         return {
-          icon: <Search size={64} color="#535353" />,
+          icon: <Search size={64} color="#666" />,
           title: 'No results found',
-          message: 'Try searching with different keywords.',
+          message: 'Try adjusting your search terms or browse your library.',
           action: null,
           actionIcon: null,
         };
-      case 'playlist-tracks':
+      case 'playlist':
         return {
-          icon: <Music size={64} color="#535353" />,
-          title: 'Empty playlist',
-          message: 'Add some tracks to this playlist.',
-          action: actionText || 'Add Tracks',
-          actionIcon: <Plus size={20} color="#000" />,
+          icon: <List size={64} color="#666" />,
+          title: 'No playlists yet',
+          message: 'Create your first playlist to organize your music.',
+          action: 'Create Playlist',
+          actionIcon: <Plus size={20} color="#fff" />,
+        };
+      case 'tracks':
+        return {
+          icon: <Music size={64} color="#666" />,
+          title: 'No tracks in this playlist',
+          message: 'Add some tracks to start building your playlist.',
+          action: 'Add Tracks',
+          actionIcon: <Plus size={20} color="#fff" />,
         };
       default:
         return {
-          icon: <Music size={64} color="#535353" />,
-          title: 'Nothing here',
-          message: 'Nothing to see here yet.',
+          icon: <Music size={64} color="#666" />,
+          title: 'Nothing here yet',
+          message: 'Start by adding some content.',
           action: null,
           actionIcon: null,
         };
@@ -78,7 +79,7 @@ export default function EmptyState({ type, onAction, actionText }: EmptyStatePro
       </ModernCard>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -88,28 +89,30 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    padding: 40,
     alignItems: 'center',
-    maxWidth: 350,
+    maxWidth: 300,
+    width: '100%',
   },
   iconContainer: {
     marginBottom: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#fff',
-    marginBottom: 10,
     textAlign: 'center',
+    marginBottom: 12,
   },
   message: {
     fontSize: 16,
     color: '#b3b3b3',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 25,
+    marginBottom: 24,
   },
   actionButton: {
     width: '100%',
   },
 });
+
+export default EmptyState;
