@@ -1,8 +1,8 @@
 export class WebAudioPlayer {
   private audio: HTMLAudioElement | null = null;
-  private currentTrackId: string | null = null;
-  private onProgressUpdate?: (position: number, duration: number) => void;
-  private onStateChange?: (playing: boolean) => void;
+  private onProgressUpdate: ((position: number, duration: number) => void) | null = null;
+  private onStateChange: ((isPlaying: boolean) => void) | null = null;
+  private onTrackEnded: (() => void) | null = null;
   private progressInterval: NodeJS.Timeout | null = null;
 
   async setupPlayer() {
@@ -17,12 +17,12 @@ export class WebAudioPlayer {
 
   async play(url: string, trackId: string) {
     if (!this.audio) await this.setupPlayer();
-    
+
     if (this.currentTrackId !== trackId) {
       this.audio!.src = url;
       this.currentTrackId = trackId;
     }
-    
+
     await this.audio!.play();
     this.startProgressTracking();
   }
@@ -67,8 +67,12 @@ export class WebAudioPlayer {
     this.onProgressUpdate = callback;
   }
 
-  setOnStateChange(callback: (playing: boolean) => void) {
+  setOnStateChange(callback: (isPlaying: boolean) => void) {
     this.onStateChange = callback;
+  }
+
+  setOnTrackEnded(callback: () => void) {
+    this.onTrackEnded = callback;
   }
 
   private startProgressTracking() {
@@ -96,7 +100,7 @@ export class WebAudioPlayer {
 
   private handleTrackEnd() {
     this.updateState(false);
-    // Could emit an event for track end to handle next track
+    this.onTrackEnded?.();
   }
 
   destroy() {

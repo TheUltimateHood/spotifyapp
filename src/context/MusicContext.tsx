@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import TrackPlayer, { State, Track, usePlaybackState, useProgress } from 'react-native-track-player';
+import TrackPlayer, { State, Track, usePlaybackState, useProgress, Event } from 'react-native-track-player';
 
 interface MusicContextType {
   currentTrack: Track | null;
@@ -52,12 +52,47 @@ export const MusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
     };
 
     getCurrentTrack();
+
+    // Set up event listener for track ended to auto-play next
+    const trackEndedListener = TrackPlayer.addEventListener(Event.PlaybackQueueEnded, async () => {
+      try {
+        const queue = await TrackPlayer.getQueue();
+        const currentIndex = await TrackPlayer.getActiveTrackIndex();
+        
+        if (currentIndex !== undefined && currentIndex < queue.length - 1) {
+          await TrackPlayer.skipToNext();
+        }
+      } catch (error) {
+        console.log('Error auto-playing next track:', error);
+      }
+    });
+
+    const trackChangedListener = TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, async (data) => {
+      if (data.track) {
+        setCurrentTrack(data.track);
+      }
+    });
+
+    return () => {
+      trackEndedListener.remove();
+      trackChangedListener.remove();
+    };
   }, [playbackState]);
 
   const playTrack = async (track: Track) => {
     try {
       await TrackPlayer.reset();
-      await TrackPlayer.add(track);
+      // Add all tracks to the queue for seamless playback
+      if (tracks.length > 0) {
+        await TrackPlayer.add(tracks);
+        // Find the index of the selected track and skip to it
+        const trackIndex = tracks.findIndex(t => t.id === track.id);
+        if (trackIndex >= 0) {
+          await TrackPlayer.skip(trackIndex);
+        }
+      } else {
+        await TrackPlayer.add(track);
+      }
       await TrackPlayer.play();
       setCurrentTrack(track);
     } catch (error) {

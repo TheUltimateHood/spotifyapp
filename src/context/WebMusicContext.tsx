@@ -83,6 +83,36 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
       setIsPlaying(playing);
     });
 
+    // Set up auto-play next track when current track ends
+    webAudioPlayer.setOnTrackEnded(() => {
+      const currentQueue = playQueue.length > 0 ? playQueue : tracks;
+      if (currentQueue.length > 0) {
+        let nextIndex;
+        if (shuffleMode) {
+          // Random next track
+          nextIndex = Math.floor(Math.random() * currentQueue.length);
+        } else {
+          // Sequential next track
+          nextIndex = queueIndex + 1;
+          if (nextIndex >= currentQueue.length) {
+            if (repeatMode === 'all') {
+              nextIndex = 0; // Loop back to first track
+            } else {
+              return; // End of playlist
+            }
+          }
+        }
+        
+        if (nextIndex < currentQueue.length) {
+          const nextTrack = currentQueue[nextIndex];
+          setCurrentTrack(nextTrack);
+          setQueueIndex(nextIndex);
+          webAudioPlayer.loadTrack(nextTrack);
+          webAudioPlayer.play();
+        }
+      }
+    });
+
     // Load persisted data
     loadPersistedData();
   }, []);
