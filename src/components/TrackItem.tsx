@@ -70,7 +70,23 @@ const TrackItem: React.FC<TrackItemProps> = ({
       >
         <TouchableOpacity
           style={styles.playButton}
-          onPress={onPress}
+          onPress={async () => {
+            if (isTrackPlaying) {
+              // If currently playing, pause
+              if (context?.pauseTrack) {
+                await context.pauseTrack();
+              }
+            } else {
+              // If not playing, play the track
+              if (context?.playTrack) {
+                await context.playTrack(track);
+              }
+            }
+            // Call the original onPress if provided
+            if (onPress) {
+              onPress();
+            }
+          }}
         >
           {isTrackPlaying ? (
             <Pause size={16} color="#1db954" />

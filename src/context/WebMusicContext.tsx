@@ -148,9 +148,12 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
   };
 
   const playTrack = async (track: Track) => {
+    console.log('playTrack called with track:', track.title);
     try {
+      console.log('Attempting to play track URL:', track.url);
       await webAudioPlayer.play(track.url, track.id);
       setCurrentTrack(track);
+      console.log('Track set as current track:', track.title);
     } catch (error) {
       console.error('Error playing track:', error);
       // You could add a toast notification here
