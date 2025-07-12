@@ -337,27 +337,13 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
                     <Trash2 size={16} color="#fff" />
                   </TouchableOpacity>
                 )}
-                {tracks.length > 0 && createPlaylist && (
-                  <TouchableOpacity 
-                    style={[styles.addButton, styles.playlistButton]} 
-                    onPress={() => setShowPlaylistModal(true)}
-                  >
-                    <ListMusic size={16} color="#fff" />
-                  </TouchableOpacity>
-                )}
                 <TouchableOpacity
                   style={styles.addButton}
                   onPress={pickAudioFiles}
                   disabled={loading}
                 >
-                  {loading ? (
-                    <Text style={styles.addButtonText}>Loading...</Text>
-                  ) : (
-                    <>
-                      <Plus size={16} color="#fff" style={{ marginRight: 6 }} />
-                      <Text style={styles.addButtonText}>Add Music</Text>
-                    </>
-                  )}
+                  <Plus size={16} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={styles.addButtonText}>Add Music</Text>
                 </TouchableOpacity>
               </>
             )}
