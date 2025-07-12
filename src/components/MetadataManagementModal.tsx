@@ -55,7 +55,7 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
   playlists,
   onApplyMetadata,
 }) => {
-  const [activeTab, setActiveTab] = useState<'upload' | 'manual' | 'auto'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'manual' | 'preview'>('upload');
   const [metadataFile, setMetadataFile] = useState<SpotifyMetadata | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [pendingUpdates, setPendingUpdates] = useState<any[]>([]);
@@ -74,7 +74,44 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
       try {
         const jsonData = JSON.parse(e.target?.result as string);
         setMetadataFile(jsonData);
-        Alert.alert('Success', `Loaded metadata from ${file.name}`);
+        
+        // Auto-detect metadata immediately after upload
+        const spotifyTracks = extractSpotifyTracks(jsonData);
+        const updates: any[] = [];
+
+        tracks.forEach(track => {
+          const normalizedTitle = track.title.toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s]/g, '')
+            .trim();
+
+          const match = spotifyTracks.find(spotifyTrack => {
+            const normalizedSpotifyTitle = spotifyTrack.name.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .replace(/[^\w\s]/g, '')
+              .trim();
+            
+            return normalizedSpotifyTitle.includes(normalizedTitle) || 
+                   normalizedTitle.includes(normalizedSpotifyTitle);
+          });
+
+          if (match) {
+            updates.push({
+              trackId: track.id,
+              artistName: match.artists[0]?.name || track.artist,
+              albumArt: match.album.images[0]?.url || track.artwork,
+              spotifyId: match.id,
+              isAutoDetected: true,
+            });
+          }
+        });
+
+        setPendingUpdates(updates);
+        
+        // Switch to preview tab to show results
+        setActiveTab('preview');
+        
+        Alert.alert('Success', `Loaded metadata from ${file.name}\nFound matches for ${updates.length} tracks`);
       } catch (error) {
         Alert.alert('Error', 'Invalid JSON file format');
       }
@@ -98,7 +135,7 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
     return [];
   };
 
-  const autoDetectMetadata = () => {
+  const rerunAutoDetection = () => {
     if (!metadataFile) {
       Alert.alert('Error', 'Please upload a metadata file first');
       return;
@@ -108,7 +145,6 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
     const updates: any[] = [];
 
     tracks.forEach(track => {
-      // Normalize track title for matching
       const normalizedTitle = track.title.toLowerCase()
         .replace(/\s+/g, ' ')
         .replace(/[^\w\s]/g, '')
@@ -136,7 +172,8 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
     });
 
     setPendingUpdates(updates);
-    Alert.alert('Auto-Detection Complete', `Found metadata for ${updates.length} tracks`);
+    setActiveTab('preview');
+    Alert.alert('Re-detection Complete', `Found metadata for ${updates.length} tracks`);
   };
 
   const applyManualMetadata = (trackId: string, artistName: string, albumArt: string) => {
@@ -206,19 +243,38 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
             ✓ Loaded: {fileName}
           </Text>
           <Text style={styles.fileInfoSubtext}>
-            Found {extractSpotifyTracks(metadataFile).length} tracks
+            Found {extractSpotifyTracks(metadataFile).length} tracks in file
+          </Text>
+          <Text style={styles.fileInfoSubtext}>
+            Matched {pendingUpdates.length} tracks from your library
           </Text>
         </View>
       )}
 
-      <TouchableOpacity 
-        style={[styles.actionButton, !metadataFile && styles.disabledButton]}
-        onPress={autoDetectMetadata}
-        disabled={!metadataFile}
-      >
-        <Search size={20} color="#fff" />
-        <Text style={styles.actionButtonText}>Auto-Detect Metadata</Text>
-      </TouchableOpacity>
+      {metadataFile && (
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={rerunAutoDetection}
+        >
+          <Search size={20} color="#fff" />
+          <Text style={styles.actionButtonText}>Re-run Auto Detection</Text>
+        </TouchableOpacity>
+      )}
+
+      {!metadataFile && (
+        <View style={styles.instructionsContainer}>
+          <Text style={styles.instructionsTitle}>How it works:</Text>
+          <Text style={styles.instructionsText}>
+            1. Upload a JSON file with Spotify metadata
+          </Text>
+          <Text style={styles.instructionsText}>
+            2. We'll automatically match your tracks
+          </Text>
+          <Text style={styles.instructionsText}>
+            3. Review and apply the matches
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -273,47 +329,88 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
     </View>
   );
 
-  const renderAutoTab = () => (
+  const renderPreviewTab = () => (
     <View style={styles.tabContent}>
       <Text style={styles.tabDescription}>
-        Review auto-detected metadata before applying
+        Review detected matches and choose how to apply them
       </Text>
 
       {pendingUpdates.length > 0 ? (
-        <ScrollView style={styles.updatesList} showsVerticalScrollIndicator={false}>
-          {pendingUpdates.map((update, index) => {
-            const track = tracks.find(t => t.id === update.trackId);
-            return (
-              <View key={index} style={styles.updateItem}>
-                <View style={styles.updateInfo}>
-                  <Text style={styles.updateTrackTitle}>{track?.title}</Text>
-                  <Text style={styles.updateDetails}>
-                    Artist: {update.artistName}
-                  </Text>
-                  {update.albumArt && (
+        <>
+          <View style={styles.previewHeader}>
+            <Text style={styles.previewStats}>
+              {pendingUpdates.length} track(s) matched
+            </Text>
+            <View style={styles.quickActions}>
+              <TouchableOpacity 
+                style={styles.quickActionButton}
+                onPress={() => {
+                  applyAllUpdates();
+                }}
+              >
+                <Check size={16} color="#fff" />
+                <Text style={styles.quickActionText}>Apply All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.quickActionButton, styles.secondaryButton]}
+                onPress={() => {
+                  setPendingUpdates([]);
+                  Alert.alert('Cleared', 'All pending updates cleared');
+                }}
+              >
+                <X size={16} color="#fff" />
+                <Text style={styles.quickActionText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <ScrollView style={styles.updatesList} showsVerticalScrollIndicator={false}>
+            {pendingUpdates.map((update, index) => {
+              const track = tracks.find(t => t.id === update.trackId);
+              return (
+                <View key={index} style={styles.updateItem}>
+                  <View style={styles.updateInfo}>
+                    <Text style={styles.updateTrackTitle}>{track?.title}</Text>
                     <Text style={styles.updateDetails}>
-                      ✓ Cover art included
+                      Artist: {update.artistName}
                     </Text>
-                  )}
+                    {update.albumArt && (
+                      <Text style={styles.updateDetails}>
+                        ✓ Cover art included
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.updateActions}>
+                    <TouchableOpacity 
+                      style={styles.individualApplyButton}
+                      onPress={() => {
+                        onApplyMetadata([update]);
+                        setPendingUpdates(prev => prev.filter((_, i) => i !== index));
+                        Alert.alert('Applied', 'Metadata applied to track');
+                      }}
+                    >
+                      <Check size={14} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.individualRemoveButton}
+                      onPress={() => {
+                        setPendingUpdates(prev => prev.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <X size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.updateStatus}>
-                  {update.isAutoDetected && (
-                    <Text style={styles.autoDetectedTag}>AUTO</Text>
-                  )}
-                  {update.isManuallyLabeled && (
-                    <Text style={styles.manualTag}>MANUAL</Text>
-                  )}
-                </View>
-              </View>
-            );
-          })}
-        </ScrollView>
+              );
+            })}
+          </ScrollView>
+        </>
       ) : (
         <View style={styles.emptyState}>
           <Music size={48} color="#666" />
-          <Text style={styles.emptyStateText}>No pending metadata updates</Text>
+          <Text style={styles.emptyStateText}>No metadata matches found</Text>
           <Text style={styles.emptyStateSubtext}>
-            Use the Upload or Manual tabs to add metadata
+            Upload a metadata file or use manual labeling
           </Text>
         </View>
       )}
@@ -352,11 +449,11 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'auto' && styles.activeTab]}
-            onPress={() => setActiveTab('auto')}
+            style={[styles.tab, activeTab === 'preview' && styles.activeTab]}
+            onPress={() => setActiveTab('preview')}
           >
-            <Search size={16} color={activeTab === 'auto' ? '#1db954' : '#666'} />
-            <Text style={[styles.tabText, activeTab === 'auto' && styles.activeTabText]}>
+            <Search size={16} color={activeTab === 'preview' ? '#1db954' : '#666'} />
+            <Text style={[styles.tabText, activeTab === 'preview' && styles.activeTabText]}>
               Preview ({pendingUpdates.length})
             </Text>
           </TouchableOpacity>
@@ -365,7 +462,7 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
         <View style={styles.content}>
           {activeTab === 'upload' && renderUploadTab()}
           {activeTab === 'manual' && renderManualTab()}
-          {activeTab === 'auto' && renderAutoTab()}
+          {activeTab === 'preview' && renderPreviewTab()}
         </View>
 
         <View style={styles.footer}>
@@ -599,6 +696,73 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     marginBottom: 4,
+  },
+  instructionsContainer: {
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 20,
+  },
+  instructionsTitle: {
+    color: '#1db954',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  instructionsText: {
+    color: '#b3b3b3',
+    fontSize: 14,
+    marginBottom: 8,
+    paddingLeft: 8,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  previewStats: {
+    color: '#1db954',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1db954',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
+  },
+  secondaryButton: {
+    backgroundColor: '#666',
+  },
+  quickActionText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  updateActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  individualApplyButton: {
+    backgroundColor: '#1db954',
+    padding: 8,
+    borderRadius: 6,
+  },
+  individualRemoveButton: {
+    backgroundColor: '#ff4444',
+    padding: 8,
+    borderRadius: 6,
   },
   emptyState: {
     flex: 1,
