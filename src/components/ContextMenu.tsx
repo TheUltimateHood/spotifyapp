@@ -1,195 +1,82 @@
-
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform } from 'react-native';
-import { MoreVertical, Heart, Plus, Trash2, Share2, ListPlus, PlayCircle } from 'lucide-react';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Dimensions } from 'react-native';
+import { Play, Plus, Heart, MoreHorizontal, List } from 'lucide-react';
 
 interface ContextMenuProps {
   visible: boolean;
-  x: number;
-  y: number;
   onClose: () => void;
-  track?: any;
-  playlist?: any;
-  onAddToPlaylist?: (track: any) => void;
-  onRemoveFromLibrary?: (track: any) => void;
-  onRemoveFromPlaylist?: (track: any) => void;
-  onAddToQueue?: (track: any) => void;
-  onPlayNext?: (track: any) => void;
+  onPlay: () => void;
+  onAddToPlaylist: () => void;
+  onAddToFavorites: () => void;
+  onQueue: () => void;
+  position: { x: number; y: number };
 }
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   visible,
-  x,
-  y,
   onClose,
-  track,
-  playlist,
+  onPlay,
   onAddToPlaylist,
-  onRemoveFromLibrary,
-  onRemoveFromPlaylist,
-  onAddToQueue,
-  onPlayNext,
+  onAddToFavorites,
+  onQueue,
+  position,
 }) => {
-  const [position, setPosition] = useState({ x, y });
-
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      // Adjust position to stay within viewport
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const menuWidth = 200;
-      const menuHeight = 150;
-
-      let adjustedX = x;
-      let adjustedY = y;
-
-      if (x + menuWidth > viewportWidth) {
-        adjustedX = viewportWidth - menuWidth - 10;
-      }
-
-      if (y + menuHeight > viewportHeight) {
-        adjustedY = viewportHeight - menuHeight - 10;
-      }
-
-      setPosition({ x: adjustedX, y: adjustedY });
-    }
-  }, [x, y]);
-
   if (!visible) return null;
 
-  const menuItems = [
-    {
-      label: 'Add to Queue',
-      icon: Plus,
-      action: () => {
-        if (onAddToQueue) {
-          onAddToQueue(track);
-        }
-        onClose();
-      },
-    },
-    {
-      label: 'Play Next',
-      icon: PlayCircle,
-      action: () => {
-        if (onPlayNext) {
-          onPlayNext(track);
-        }
-        onClose();
-      },
-    },
-  ];
+  const menuWidth = 180;
+  const menuHeight = 200;
 
-  if (onRemoveFromPlaylist) {
-    menuItems.push({
-      label: 'Remove from Playlist',
-      icon: Trash2,
-      action: () => {
-        onRemoveFromPlaylist(track);
-        onClose();
-      },
-    });
+  // Adjust position to keep menu within screen bounds
+  let adjustedX = position.x;
+  let adjustedY = position.y;
+
+  if (position.x + menuWidth > screenWidth) {
+    adjustedX = screenWidth - menuWidth - 10;
   }
 
-  if (Platform.OS === 'web') {
-    return (
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 10000,
-        }}
-        onClick={onClose}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            left: position.x,
-            top: position.y,
-            backgroundColor: '#282828',
-            borderRadius: 8,
-            padding: 8,
-            minWidth: 180,
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
-            border: '1px solid #404040',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {menuItems.map((item, index) => {
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={index}
-                onClick={item.action}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '12px 16px',
-                  cursor: 'pointer',
-                  borderRadius: 4,
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#404040'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <IconComponent size={16} color="#fff" style={{ marginRight: 12 }} />
-                <span style={{ color: '#fff', fontSize: 14, fontWeight: '500' }}>
-                  {item.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+  if (position.y + menuHeight > screenHeight) {
+    adjustedY = position.y - menuHeight;
+  }
+
+  // Ensure menu doesn't go above screen
+  if (adjustedY < 0) {
+    adjustedY = 10;
   }
 
   return (
-    <Modal transparent visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} onPress={onClose}>
-        <View style={[styles.menu, { left: position.x, top: position.y }]}>
-          {onAddToQueue && (
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              onAddToQueue(track);
-              onClose();
-            }}>
-              <ListPlus size={20} color="#fff" />
-              <Text style={styles.menuText}>Add to Queue</Text>
-            </TouchableOpacity>
-          )}
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+      animationType="fade"
+    >
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <View style={[styles.menu, { top: adjustedY, left: adjustedX }]}>
+          <TouchableOpacity style={styles.menuItem} onPress={onPlay}>
+            <Play size={20} color="#fff" />
+            <Text style={styles.menuText}>Play Now</Text>
+          </TouchableOpacity>
 
-          {onPlayNext && (
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              onPlayNext(track);
-              onClose();
-            }}>
-              <PlayCircle size={20} color="#fff" />
-              <Text style={styles.menuText}>Play Next</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.menuItem} onPress={onQueue}>
+            <List size={20} color="#fff" />
+            <Text style={styles.menuText}>Queue</Text>
+          </TouchableOpacity>
 
-          {onAddToPlaylist && (
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              onAddToPlaylist(track);
-              onClose();
-            }}>
-              <Plus size={20} color="#fff" />
-              <Text style={styles.menuText}>Add to Playlist</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.menuItem} onPress={onAddToPlaylist}>
+            <Plus size={20} color="#fff" />
+            <Text style={styles.menuText}>Add to Playlist</Text>
+          </TouchableOpacity>
 
-          {onRemoveFromPlaylist && (
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              onRemoveFromPlaylist(track);
-              onClose();
-            }}>
-              <Trash2 size={20} color="#fff" />
-              <Text style={styles.menuText}>Remove from Playlist</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.menuItem} onPress={onAddToFavorites}>
+            <Heart size={20} color="#fff" />
+            <Text style={styles.menuText}>Add to Favorites</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -200,32 +87,35 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 9999,
   },
   menu: {
     position: 'absolute',
     backgroundColor: '#282828',
     borderRadius: 8,
-    padding: 8,
     minWidth: 180,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 20,
+    zIndex: 10000,
     borderWidth: 1,
     borderColor: '#404040',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#404040',
   },
   menuText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
     marginLeft: 12,
+    fontWeight: '500',
   },
 });
 

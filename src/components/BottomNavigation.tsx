@@ -55,8 +55,10 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 0.5,
     borderTopColor: '#333',
-    zIndex: 9999,
+    zIndex: 9998,
     width: '100%',
+    minHeight: Platform.OS === 'ios' ? 80 : 70,
+    maxHeight: Platform.OS === 'ios' ? 80 : 70,
   },
   tab: {
     flex: 1,

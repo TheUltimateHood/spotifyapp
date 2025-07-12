@@ -181,7 +181,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: Platform.OS === 'ios' ? 90 : 80,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 90,
+    minHeight: '100vh',
+    overflowY: 'auto',
   },
   playerModal: {
     position: 'absolute',
