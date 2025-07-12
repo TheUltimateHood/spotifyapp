@@ -48,6 +48,7 @@ interface MusicContextType {
   clearQueue: () => void;
   removeFromQueue: (index: number) => void;
   updatePlaylistName?: (playlistId: string, newName: string) => void;
+  updateTrackMetadata?: (trackId: string, metadata: Partial<Track>) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -331,6 +332,19 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     });
   };
 
+  const updateTrackMetadata = (trackId: string, metadata: Partial<Track>) => {
+    setTracks(prevTracks => {
+      const updatedTracks = prevTracks.map(track => 
+        track.id === trackId 
+          ? { ...track, ...metadata }
+          : track
+      );
+      // Save to localStorage
+      localStorage.setItem('music_tracks', JSON.stringify(updatedTracks));
+      return updatedTracks;
+    });
+  };
+
   return (
     <MusicContext.Provider
       value={{
@@ -362,6 +376,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
         clearQueue,
         removeFromQueue,
         updatePlaylistName,
+        updateTrackMetadata,
       }}
     >
       {children}

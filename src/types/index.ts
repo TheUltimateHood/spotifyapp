@@ -6,6 +6,12 @@ export interface Track {
   album?: string;
   artwork?: string;
   duration?: number;
+  metadata?: {
+    spotifyId?: string;
+    artistName?: string;
+    albumArt?: string;
+    isManuallyLabeled?: boolean;
+  };
 }
 
 export interface PlaybackState {

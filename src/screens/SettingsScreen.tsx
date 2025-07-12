@@ -15,10 +15,12 @@ import {
   Database,
   Info,
   ChevronRight,
-  Download
+  Download,
+  Tag
 } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
 import TrackSelectionModal from '../components/TrackSelectionModal';
+import MetadataManagementModal from '../components/MetadataManagementModal';
 
 // Platform-specific imports
 let useMusicContext: any;
@@ -35,12 +37,14 @@ const SettingsScreen: React.FC = () => {
   const { 
     tracks, 
     clearTracks,
-    removeTrack
+    removeTrack,
+    updateTrackMetadata
   } = context;
 
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showDeleteSelectedConfirmation, setShowDeleteSelectedConfirmation] = useState(false);
   const [showTrackSelectionModal, setShowTrackSelectionModal] = useState(false);
+  const [showMetadataModal, setShowMetadataModal] = useState(false);
   const [selectedTracksForDeletion, setSelectedTracksForDeletion] = useState<string[]>([]);
 
   const handleClearTracks = () => {
@@ -84,6 +88,25 @@ const SettingsScreen: React.FC = () => {
     setShowDeleteSelectedConfirmation(false);
     setSelectedTracksForDeletion([]);
     Alert.alert('Success', `${selectedTracksForDeletion.length} song(s) have been removed from your library`);
+  };
+
+  const handleApplyMetadata = (updates: any[]) => {
+    updates.forEach(update => {
+      const track = tracks.find(t => t.id === update.trackId);
+      if (track && updateTrackMetadata) {
+        updateTrackMetadata(update.trackId, {
+          artist: update.artistName || track.artist,
+          artwork: update.albumArt || track.artwork,
+          metadata: {
+            spotifyId: update.spotifyId,
+            artistName: update.artistName,
+            albumArt: update.albumArt,
+            isManuallyLabeled: update.isManuallyLabeled || false,
+          }
+        });
+      }
+    });
+    setShowMetadataModal(false);
   };
 
   const renderSettingItem = (item: any) => (
@@ -182,6 +205,29 @@ const SettingsScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Metadata Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Metadata</Text>
+          
+          <TouchableOpacity 
+            style={styles.settingItem} 
+            onPress={() => setShowMetadataModal(true)}
+          >
+            <View style={styles.settingLeft}>
+              <View style={styles.iconContainer}>
+                <Tag size={20} color="#fff" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.settingTitle}>Label Metadata</Text>
+                <Text style={styles.settingSubtitle}>
+                  Import Spotify metadata or manually label tracks
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color="#666" />
+          </TouchableOpacity>
+        </View>
+
         {/* App Info Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Info</Text>
@@ -229,6 +275,14 @@ const SettingsScreen: React.FC = () => {
         tracks={tracks}
         onConfirm={handleTrackSelectionConfirm}
         onCancel={() => setShowTrackSelectionModal(false)}
+      />
+
+      <MetadataManagementModal
+        visible={showMetadataModal}
+        onClose={() => setShowMetadataModal(false)}
+        tracks={tracks}
+        playlists={[]} // TODO: Add playlists when needed
+        onApplyMetadata={handleApplyMetadata}
       />
     </SafeAreaView>
   );

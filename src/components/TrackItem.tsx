@@ -96,14 +96,24 @@ const TrackItem: React.FC<TrackItemProps> = ({
         </TouchableOpacity>
 
         <View style={styles.trackInfo}>
-          <Text 
-            style={[
-              styles.trackTitle,
-              isCurrentTrack && styles.currentTrackTitle,
-            ]} 
-            numberOfLines={1}
-          >
-            {track.title}
+          <View style={styles.titleRow}>
+            <Text
+              style={[
+                styles.trackTitle,
+                isCurrentTrack && styles.currentTrackTitle,
+              ]}
+              numberOfLines={1}
+            >
+              {track.title}
+            </Text>
+            {track.metadata?.isManuallyLabeled && (
+              <View style={styles.labeledIndicator}>
+                <Text style={styles.labeledText}>✓</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.trackArtist} numberOfLines={1}>
+            {track.metadata?.artistName || track.artist}
           </Text>
         </View>
 
@@ -165,7 +175,23 @@ const styles = StyleSheet.create({
   },
   trackInfo: {
     flex: 1,
-    justifyContent: 'center',
+    marginLeft: 16,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  labeledIndicator: {
+    backgroundColor: '#1db954',
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  labeledText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   trackTitle: {
     fontSize: 16,

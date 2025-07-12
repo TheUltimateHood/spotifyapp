@@ -14,6 +14,9 @@ interface MusicContextType {
   addTracks: (newTracks: Track[]) => void;
   nextTrack: () => Promise<void>;
   previousTrack: () => Promise<void>;
+  updateTrackMetadata?: (trackId: string, metadata: Partial<Track>) => void;
+  clearTracks?: () => void;
+  removeTrack?: (trackId: string) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
