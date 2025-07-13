@@ -17,7 +17,6 @@ import PlayerControls from '../components/PlayerControls';
 import SearchBar from '../components/SearchBar';
 import AudioVisualizer from '../components/AudioVisualizer';
 import PlaylistModal from '../components/PlaylistModal';
-import AnimatedMusicNote from '../components/AnimatedMusicNote';
 import ModernButton from '../components/ModernButton';
 import ModernCard from '../components/ModernCard';
 import { processMultipleAudioFiles } from '../utils/audioConverter';
@@ -244,11 +243,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
 
       {tracks.length === 0 ? (
         <View style={styles.emptyState}>
-          <View style={styles.animatedNotesContainer}>
-            <AnimatedMusicNote delay={0} />
-            <AnimatedMusicNote delay={500} />
-            <AnimatedMusicNote delay={1000} />
-          </View>
           <Text style={styles.emptyStateTitle}>No Music Added</Text>
           <Text style={styles.emptyStateText}>
             Tap "Add Music" to choose audio files from your device
