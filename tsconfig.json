@@ -8,7 +8,9 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "src/**/*",

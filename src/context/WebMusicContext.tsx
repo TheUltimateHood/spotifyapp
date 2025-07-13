@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { webAudioPlayer } from '../utils/webAudioPlayer';
 
 export interface Track {
   id: string;
-  url: string;
+  url?: string;
   title: string;
   artist: string;
   album?: string;
@@ -65,7 +65,7 @@ interface MusicProviderProps {
   children: ReactNode;
 }
 
-export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => {
+export const WebMusicProvider = ({ children }: MusicProviderProps) => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -113,8 +113,7 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
           const nextTrack = currentQueue[nextIndex];
           setCurrentTrack(nextTrack);
           setQueueIndex(nextIndex);
-          webAudioPlayer.loadTrack(nextTrack);
-          webAudioPlayer.play();
+          webAudioPlayer.play(nextTrack.url, nextTrack.id);
         }
       }
     });
@@ -183,15 +182,16 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
 
   const addTracks = (newTracks: Track[]) => {
     setTracks(prevTracks => {
-      const updatedTracks = [...prevTracks, ...newTracks];
-      // Save to localStorage
-      localStorage.setItem('music_tracks', JSON.stringify(updatedTracks));
-      return updatedTracks;
+      if (!prevTracks) return newTracks;
+      if (!Array.isArray(prevTracks)) return [...newTracks];
+      return [...prevTracks, ...newTracks];
     });
   };
 
   const removeTrack = (trackId: string) => {
     setTracks(prevTracks => {
+      if (!prevTracks) return [];
+      if (!Array.isArray(prevTracks)) return [];
       const updatedTracks = prevTracks.filter(track => track.id !== trackId);
       // Save to localStorage
       localStorage.setItem('music_tracks', JSON.stringify(updatedTracks));
@@ -279,6 +279,8 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
     };
 
     setPlaylists(prevPlaylists => {
+      if (!prevPlaylists) return [newPlaylist];
+      if (!Array.isArray(prevPlaylists)) return [newPlaylist];
       const updatedPlaylists = [...prevPlaylists, newPlaylist];
       // Save to localStorage
       localStorage.setItem('music_playlists', JSON.stringify(updatedPlaylists));
@@ -288,6 +290,8 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
 
   const deletePlaylist = (playlistId: string) => {
     setPlaylists(prevPlaylists => {
+      if (!prevPlaylists) return [];
+      if (!Array.isArray(prevPlaylists)) return [];
       const updatedPlaylists = prevPlaylists.filter(p => p.id !== playlistId);
       // Save to localStorage
       localStorage.setItem('music_playlists', JSON.stringify(updatedPlaylists));
@@ -321,25 +325,27 @@ export const WebMusicProvider: React.FC<MusicProviderProps> = ({ children }) => 
 
   const updatePlaylistName = (playlistId: string, newName: string) => {
     setPlaylists(prevPlaylists => {
-      const updatedPlaylists = prevPlaylists.map(playlist => 
+      if (!prevPlaylists || !Array.isArray(prevPlaylists)) return [{ id: playlistId, name: newName, trackIds: [], createdAt: new Date() }];
+      return prevPlaylists.map(playlist => 
         playlist.id === playlistId 
           ? { ...playlist, name: newName }
           : playlist
       );
-      // Save to localStorage
-      localStorage.setItem('music_playlists', JSON.stringify(updatedPlaylists));
-      return updatedPlaylists;
     });
   };
 
   const updateTrackMetadata = (trackId: string, metadata: Partial<Track>) => {
     setTracks(prevTracks => {
-      const updatedTracks = prevTracks.map(track => 
-        track.id === trackId 
-          ? { ...track, ...metadata }
+      const currentTracks = Array.isArray(prevTracks) ? prevTracks : [];
+      const updatedTracks = currentTracks.map(track =>
+        track.id === trackId
+          ? ({ ...track, ...metadata } as Track) // Explicitly cast to Track
           : track
       );
-      // Save to localStorage
+
+      // If the track didn't exist, this map does nothing, which is the desired behavior.
+      // We avoid adding incomplete track objects.
+
       localStorage.setItem('music_tracks', JSON.stringify(updatedTracks));
       return updatedTracks;
     });

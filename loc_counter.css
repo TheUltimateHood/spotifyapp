@@ -1,0 +1,20 @@
+Screen {
+    layout: vertical;
+}
+
+Container {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 1 2;
+    height: 100%;
+}
+
+DirectoryTree {
+    border: solid $accent;
+    width: 100%;
+}
+
+#results-view {
+    border: solid $accent;
+    padding: 1;
+}

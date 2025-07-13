@@ -18,6 +18,7 @@ import AnimatedMusicNote from '../components/AnimatedMusicNote';
 import PlaylistManagementModal from '../components/PlaylistManagementModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { processMultipleAudioFiles } from '../utils/audioConverter';
+import JSZip from 'jszip';
 
 // Platform-specific imports
 let DocumentPicker: any;
@@ -162,51 +163,61 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ onTrackSelect }) => {
       setLoading(true);
       
       if (Platform.OS === 'web') {
-        if (!fileInputRef.current) {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'audio/*,video/*,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4,.avi,.mov,.mkv,.webm,.3gp,.wmv,.asf,.amr,.aiff,.opus';
-          input.multiple = true;
-          input.style.display = 'none';
-          
-          input.onchange = async (e: Event) => {
-            const target = e.target as HTMLInputElement;
-            const files = Array.from(target.files || []);
-            
-            console.log(`Starting to process ${files.length} files...`);
-            
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'audio/*,.zip';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+
+        fileInput.onchange = async (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (!target.files) return;
+
+          const files = Array.from(target.files);
+          if (files.length > 0) {
+            setLoading(true);
             try {
-              const { successful, failed } = await processMultipleAudioFiles(files);
-              
-              console.log(`Processing complete: ${successful.length} successful, ${failed.length} failed`);
-              
-              if (successful.length > 0) {
-                addTracks(successful);
+              let audioFiles: File[] = [];
+              for (const file of files) {
+                if (file.name.toLowerCase().endsWith('.zip')) {
+                  const zip = await JSZip.loadAsync(file);
+                  const zipFiles = Object.values(zip.files);
+                  for (const zipFile of zipFiles) {
+                    if (!zipFile.dir && (zipFile.name.endsWith('.mp3') || zipFile.name.endsWith('.wav') || zipFile.name.endsWith('.flac') || zipFile.name.endsWith('.m4a'))) {
+                      const blob = await zipFile.async('blob');
+                      audioFiles.push(new File([blob], zipFile.name, { type: blob.type }));
+                    }
+                  }
+                } else {
+                  audioFiles.push(file);
+                }
               }
-              
-              let message = '';
-              if (successful.length > 0) {
-                message += `Added ${successful.length} track(s) to your library`;
+
+              if (audioFiles.length > 0) {
+                const results = await processMultipleAudioFiles(audioFiles);
+                if (addTracks && results.successful.length > 0) {
+                  addTracks(results.successful);
+                }
+
+                if (results.failed.length > 0) {
+                  console.warn('Some files failed to process:', results.failed);
+                  Alert.alert('Processing Issue', `${results.successful.length} song(s) added. ${results.failed.length} file(s) failed to process. Check console for details.`);
+                } else if (results.successful.length > 0) {
+                  Alert.alert('Success', `Added ${results.successful.length} new song(s) to your library`);
+                }
               }
-              if (failed.length > 0) {
-                message += successful.length > 0 ? '\n' : '';
-                message += `Failed to process ${failed.length} file(s): ${failed.map(f => f.file.name).join(', ')}`;
-              }
-              
-              Alert.alert(successful.length > 0 ? 'Success' : 'Error', message);
             } catch (error) {
               console.error('Error processing files:', error);
-              Alert.alert('Error', 'Failed to process audio files. Please try again.');
+              Alert.alert('Error', 'There was an error processing the files.');
             } finally {
               setLoading(false);
             }
-          };
-          
-          document.body.appendChild(input);
-          fileInputRef.current = input;
-        }
-        
-        fileInputRef.current.click();
+          }
+          document.body.removeChild(fileInput);
+        };
+
+        document.body.appendChild(fileInput);
+        fileInput.click();
       } else {
         const hasPermission = await requestStoragePermission();
         if (!hasPermission) {

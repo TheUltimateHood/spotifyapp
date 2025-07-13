@@ -1,0 +1,134 @@
+{
+    "songs": [
+        {
+            "album": {
+                "album_type": "album",
+                "artists": [
+                    {
+                        "external_urls": {
+                            "spotify": "https://open.spotify.com/artist/1dfeR4HaWDbWqFHLkxsg1d"
+                        },
+                        "href": "https://api.spotify.com/v1/artists/1dfeR4HaWDbWqFHLkxsg1d",
+                        "id": "1dfeR4HaWDbWqFHLkxsg1d",
+                        "name": "Queen",
+                        "type": "artist",
+                        "uri": "spotify:artist:1dfeR4HaWDbWqFHLkxsg1d"
+                    }
+                ],
+                "external_urls": {
+                    "spotify": "https://open.spotify.com/album/6i6folBtxKV28WX3msQ4FE"
+                },
+                "href": "https://api.spotify.com/v1/albums/6i6folBtxKV28WX3msQ4FE",
+                "id": "6i6folBtxKV28WX3msQ4FE",
+                "images": [
+                    {
+                        "height": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b273e33d9fd159201808a19a71a3",
+                        "width": 640
+                    }
+                ],
+                "name": "Bohemian Rhapsody (The Original Soundtrack)",
+                "release_date": "2018-10-19",
+                "release_date_precision": "day",
+                "total_tracks": 22,
+                "type": "album",
+                "uri": "spotify:album:6i6folBtxKV28WX3msQ4FE"
+            },
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/1dfeR4HaWDbWqFHLkxsg1d"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/1dfeR4HaWDbWqFHLkxsg1d",
+                    "id": "1dfeR4HaWDbWqFHLkxsg1d",
+                    "name": "Queen",
+                    "type": "artist",
+                    "uri": "spotify:artist:1dfeR4HaWDbWqFHLkxsg1d"
+                }
+            ],
+            "disc_number": 1,
+            "duration_ms": 354947,
+            "explicit": false,
+            "external_ids": {
+                "isrc": "GBUM71029604"
+            },
+            "external_urls": {
+                "spotify": "https://open.spotify.com/track/4u7EnebtmKWzANvKgiMusB"
+            },
+            "href": "https://api.spotify.com/v1/tracks/4u7EnebtmKWzANvKgiMusB",
+            "id": "4u7EnebtmKWzANvKgiMusB",
+            "is_local": false,
+            "name": "Bohemian Rhapsody",
+            "popularity": 82,
+            "preview_url": "https://p.scdn.co/mp3-preview/06a6516a6f35b5a4a27915f43883398943478463?cid=774b29d4f13844c495f206cafdad9c86",
+            "track_number": 7,
+            "type": "track",
+            "uri": "spotify:track:4u7EnebtmKWzANvKgiMusB"
+        },
+        {
+            "album": {
+                "album_type": "album",
+                "artists": [
+                    {
+                        "external_urls": {
+                            "spotify": "https://open.spotify.com/artist/4r654YdI6bN4fIFt3V2adp"
+                        },
+                        "href": "https://api.spotify.com/v1/artists/4r654YdI6bN4fIFt3V2adp",
+                        "id": "4r654YdI6bN4fIFt3V2adp",
+                        "name": "a-ha",
+                        "type": "artist",
+                        "uri": "spotify:artist:4r654YdI6bN4fIFt3V2adp"
+                    }
+                ],
+                "external_urls": {
+                    "spotify": "https://open.spotify.com/album/7BwPAeYd0E7n3E4Dk3v22f"
+                },
+                "href": "https://api.spotify.com/v1/albums/7BwPAeYd0E7n3E4Dk3v22f",
+                "id": "7BwPAeYd0E7n3E4Dk3v22f",
+                "images": [
+                    {
+                        "height": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b273e33d9fd159201808a19a71a3",
+                        "width": 640
+                    }
+                ],
+                "name": "Hunting High and Low",
+                "release_date": "1985-06-01",
+                "release_date_precision": "day",
+                "total_tracks": 10,
+                "type": "album",
+                "uri": "spotify:album:7BwPAeYd0E7n3E4Dk3v22f"
+            },
+            "artists": [
+                {
+                    "external_urls": {
+                        "spotify": "https://open.spotify.com/artist/4r654YdI6bN4fIFt3V2adp"
+                    },
+                    "href": "https://api.spotify.com/v1/artists/4r654YdI6bN4fIFt3V2adp",
+                    "id": "4r654YdI6bN4fIFt3V2adp",
+                    "name": "a-ha",
+                    "type": "artist",
+                    "uri": "spotify:artist:4r654YdI6bN4fIFt3V2adp"
+                }
+            ],
+            "disc_number": 1,
+            "duration_ms": 225000,
+            "explicit": false,
+            "external_ids": {
+                "isrc": "USWB19900903"
+            },
+            "external_urls": {
+                "spotify": "https://open.spotify.com/track/2WfaOiMkCvy7F5fcp2zZ8L"
+            },
+            "href": "https://api.spotify.com/v1/tracks/2WfaOiMkCvy7F5fcp2zZ8L",
+            "id": "2WfaOiMkCvy7F5fcp2zZ8L",
+            "is_local": false,
+            "name": "Take on Me",
+            "popularity": 85,
+            "preview_url": "https://p.scdn.co/mp3-preview/39b5b3a453b32038343f2338955e1a0631b01438?cid=774b29d4f13844c495f206cafdad9c86",
+            "track_number": 1,
+            "type": "track",
+            "uri": "spotify:track:2WfaOiMkCvy7F5fcp2zZ8L"
+        }
+    ]
+}
