@@ -518,6 +518,410 @@ const MetadataManagementScreen: React.FC = () => {
     </View>
   );
 
+  const renderAutoLabelStep = () => (
+    <View style={styles.stepContainer}>
+      <View style={styles.stepHeader}>
+        <TouchableOpacity onPress={() => setCurrentStep('target-selection')} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.stepTitle}>Auto-Label Results</Text>
+      </View>
+      
+      <Text style={styles.stepDescription}>
+        Found {autoMatches.length} matches. Review and apply changes.
+      </Text>
+
+      <ScrollView style={styles.matchesList} showsVerticalScrollIndicator={false}>
+        {autoMatches.map((match, index) => (
+          <View key={index} style={styles.matchItem}>
+            <View style={styles.matchHeader}>
+              <Text style={styles.confidenceScore}>
+                {Math.round(match.confidence * 100)}% match
+              </Text>
+            </View>
+            
+            <View style={styles.matchComparison}>
+              <View style={styles.originalTrack}>
+                <Text style={styles.comparisonLabel}>Original</Text>
+                <Image source={{ uri: match.track.artwork }} style={styles.comparisonArtwork} />
+                <Text style={styles.comparisonTitle}>{match.track.title}</Text>
+                <Text style={styles.comparisonArtist}>{match.track.artist}</Text>
+              </View>
+              
+              <View style={styles.arrow}>
+                <Text style={styles.arrowText}>→</Text>
+              </View>
+              
+              <View style={styles.newTrack}>
+                <Text style={styles.comparisonLabel}>New</Text>
+                <Image 
+                  source={{ uri: match.metadata.album?.images[0]?.url || match.track.artwork }} 
+                  style={styles.comparisonArtwork} 
+                />
+                <Text style={styles.comparisonTitle}>{match.metadata.name}</Text>
+                <Text style={styles.comparisonArtist}>{match.metadata.artists[0]?.name}</Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity 
+          style={styles.primaryButton}
+          onPress={applyAutoMatches}
+        >
+          <Text style={styles.primaryButtonText}>Apply All Matches</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.secondaryButton}
+          onPress={() => setCurrentStep('manual-assign')}
+        >
+          <Text style={styles.secondaryButtonText}>Manual Assignment</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderManualAssignStep = () => {
+    const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+    const [selectedMetadata, setSelectedMetadata] = useState<MetadataItem | null>(null);
+
+    const handleAssign = () => {
+      if (!selectedTrack || !selectedMetadata) {
+        Alert.alert('Error', 'Please select both a track and metadata');
+        return;
+      }
+
+      const update = {
+        trackId: selectedTrack.id,
+        updates: {
+          title: selectedMetadata.name,
+          artist: selectedMetadata.artists[0]?.name || selectedTrack.artist,
+          album: selectedMetadata.album?.name || selectedTrack.album,
+          artwork: selectedMetadata.album?.images[0]?.url || selectedTrack.artwork,
+          metadata: {
+            spotifyId: selectedMetadata.id,
+            artistName: selectedMetadata.artists[0]?.name,
+            albumArt: selectedMetadata.album?.images[0]?.url,
+            isManuallyLabeled: true,
+          }
+        }
+      };
+
+      applyUpdates([update]);
+      setSelectedTrack(null);
+      setSelectedMetadata(null);
+      Alert.alert('Success', 'Metadata assigned successfully');
+    };
+
+    return (
+      <View style={styles.stepContainer}>
+        <View style={styles.stepHeader}>
+          <TouchableOpacity onPress={() => setCurrentStep('preview')} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.stepTitle}>Manual Assignment</Text>
+        </View>
+        
+        <Text style={styles.stepDescription}>
+          Manually assign metadata from your file to specific tracks
+        </Text>
+
+        <ScrollView style={styles.assignmentContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.assignmentSection}>
+            <Text style={styles.assignmentSectionTitle}>Select Track</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+              {[...tracks, ...playlists.flatMap(p => p.tracks)].map(track => (
+                <TouchableOpacity
+                  key={track.id}
+                  style={[
+                    styles.assignmentItem,
+                    selectedTrack?.id === track.id && styles.selectedAssignmentItem
+                  ]}
+                  onPress={() => setSelectedTrack(track)}
+                >
+                  <Image source={{ uri: track.artwork }} style={styles.assignmentArtwork} />
+                  <Text style={styles.assignmentTitle}>{track.title}</Text>
+                  <Text style={styles.assignmentArtist}>{track.artist}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.assignmentSection}>
+            <Text style={styles.assignmentSectionTitle}>Select Metadata</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+              {metadataFile.map((metadata, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.assignmentItem,
+                    selectedMetadata?.id === metadata.id && styles.selectedAssignmentItem
+                  ]}
+                  onPress={() => setSelectedMetadata(metadata)}
+                >
+                  <Image 
+                    source={{ uri: metadata.album?.images[0]?.url || 'https://via.placeholder.com/100x100/1db954/ffffff?text=No+Cover' }} 
+                    style={styles.assignmentArtwork} 
+                  />
+                  <Text style={styles.assignmentTitle}>{metadata.name}</Text>
+                  <Text style={styles.assignmentArtist}>{metadata.artists[0]?.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {selectedTrack && selectedMetadata && (
+            <View style={styles.assignmentPreview}>
+              <Text style={styles.previewTitle}>Assignment Preview</Text>
+              <View style={styles.previewComparison}>
+                <View style={styles.previewItem}>
+                  <Text style={styles.previewLabel}>Track</Text>
+                  <Text style={styles.previewValue}>{selectedTrack.title}</Text>
+                </View>
+                <View style={styles.previewItem}>
+                  <Text style={styles.previewLabel}>Will become</Text>
+                  <Text style={styles.previewValue}>{selectedMetadata.name}</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        <TouchableOpacity 
+          style={[
+            styles.primaryButton,
+            (!selectedTrack || !selectedMetadata) && styles.disabledButton
+          ]}
+          onPress={handleAssign}
+          disabled={!selectedTrack || !selectedMetadata}
+        >
+          <Text style={styles.primaryButtonText}>Assign Metadata</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderManualEditStep = () => {
+    const [editingTrack, setEditingTrack] = useState<Track | null>(null);
+    const [editForm, setEditForm] = useState({
+      title: '',
+      artist: '',
+      album: '',
+      artwork: ''
+    });
+
+    const startEditing = (track: Track) => {
+      setEditingTrack(track);
+      setEditForm({
+        title: track.title,
+        artist: track.artist,
+        album: track.album || '',
+        artwork: track.artwork || ''
+      });
+    };
+
+    const saveEdit = () => {
+      if (!editingTrack) return;
+
+      const update = {
+        trackId: editingTrack.id,
+        updates: {
+          title: editForm.title,
+          artist: editForm.artist,
+          album: editForm.album,
+          artwork: editForm.artwork,
+          metadata: {
+            ...editingTrack.metadata,
+            isManuallyLabeled: true,
+          }
+        }
+      };
+
+      applyUpdates([update]);
+      setEditingTrack(null);
+      Alert.alert('Success', 'Track updated successfully');
+    };
+
+    const handleMassEdit = (playlistId: string) => {
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (!playlist) return;
+
+      Alert.prompt(
+        'Mass Edit Playlist',
+        'Enter artist name to apply to all tracks:',
+        (artistName) => {
+          if (!artistName) return;
+
+          const updates = playlist.tracks.map(track => ({
+            trackId: track.id,
+            updates: {
+              ...track,
+              artist: artistName,
+              metadata: {
+                ...track.metadata,
+                isManuallyLabeled: true,
+              }
+            }
+          }));
+
+          applyUpdates(updates);
+          Alert.alert('Success', `Updated ${updates.length} tracks in ${playlist.name}`);
+        }
+      );
+    };
+
+    return (
+      <View style={styles.stepContainer}>
+        <View style={styles.stepHeader}>
+          <TouchableOpacity onPress={() => setCurrentStep('upload')} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Done</Text>
+          </TouchableOpacity>
+          <Text style={styles.stepTitle}>Manual Edit</Text>
+        </View>
+        
+        <Text style={styles.stepDescription}>
+          Edit track metadata with your own data
+        </Text>
+
+        <ScrollView style={styles.editContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.editSection}>
+            <Text style={styles.sectionTitle}>Playlists</Text>
+            {playlists.map(playlist => (
+              <View key={playlist.id} style={styles.playlistEditItem}>
+                <TouchableOpacity 
+                  style={styles.playlistEditHeader}
+                  onPress={() => togglePlaylistExpansion(playlist.id)}
+                >
+                  <Text style={styles.playlistName}>{playlist.name}</Text>
+                  <TouchableOpacity
+                    style={styles.massEditButton}
+                    onPress={() => handleMassEdit(playlist.id)}
+                  >
+                    <Text style={styles.massEditButtonText}>Mass Edit</Text>
+                  </TouchableOpacity>
+                  {expandedPlaylists.has(playlist.id) ? (
+                    <ChevronDown size={20} color="#666" />
+                  ) : (
+                    <ChevronRight size={20} color="#666" />
+                  )}
+                </TouchableOpacity>
+                
+                {expandedPlaylists.has(playlist.id) && (
+                  <View style={styles.playlistTracks}>
+                    {playlist.tracks.map(track => (
+                      <TouchableOpacity
+                        key={track.id}
+                        style={styles.editTrackItem}
+                        onPress={() => startEditing(track)}
+                      >
+                        <Image source={{ uri: track.artwork }} style={styles.trackArtwork} />
+                        <View style={styles.trackDetails}>
+                          <Text style={styles.trackTitle}>{track.title}</Text>
+                          <Text style={styles.trackArtist}>{track.artist}</Text>
+                        </View>
+                        <Edit3 size={16} color="#1db954" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.editSection}>
+            <Text style={styles.sectionTitle}>Individual Tracks</Text>
+            {tracks.map(track => (
+              <TouchableOpacity
+                key={track.id}
+                style={styles.editTrackItem}
+                onPress={() => startEditing(track)}
+              >
+                <Image source={{ uri: track.artwork }} style={styles.trackArtwork} />
+                <View style={styles.trackDetails}>
+                  <Text style={styles.trackTitle}>{track.title}</Text>
+                  <Text style={styles.trackArtist}>{track.artist}</Text>
+                </View>
+                <Edit3 size={16} color="#1db954" />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {editingTrack && (
+          <View style={styles.editModal}>
+            <View style={styles.editModalContent}>
+              <View style={styles.editModalHeader}>
+                <Text style={styles.editModalTitle}>Edit Track</Text>
+                <TouchableOpacity onPress={() => setEditingTrack(null)}>
+                  <X size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.editForm}>
+                <Text style={styles.editLabel}>Title</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editForm.title}
+                  onChangeText={(text) => setEditForm({...editForm, title: text})}
+                  placeholder="Track title"
+                  placeholderTextColor="#666"
+                />
+                
+                <Text style={styles.editLabel}>Artist</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editForm.artist}
+                  onChangeText={(text) => setEditForm({...editForm, artist: text})}
+                  placeholder="Artist name"
+                  placeholderTextColor="#666"
+                />
+                
+                <Text style={styles.editLabel}>Album</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editForm.album}
+                  onChangeText={(text) => setEditForm({...editForm, album: text})}
+                  placeholder="Album name"
+                  placeholderTextColor="#666"
+                />
+                
+                <Text style={styles.editLabel}>Artwork URL</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editForm.artwork}
+                  onChangeText={(text) => setEditForm({...editForm, artwork: text})}
+                  placeholder="Image URL"
+                  placeholderTextColor="#666"
+                />
+              </View>
+              
+              <View style={styles.editModalActions}>
+                <TouchableOpacity 
+                  style={styles.editCancelButton}
+                  onPress={() => setEditingTrack(null)}
+                >
+                  <Text style={styles.editCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.editSaveButton}
+                  onPress={saveEdit}
+                >
+                  <Text style={styles.editSaveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderDirectEditStep = () => {
+    return renderManualEditStep();
+  };
+
   return (
     <View style={styles.container}>
       {loading && (
@@ -529,8 +933,10 @@ const MetadataManagementScreen: React.FC = () => {
       {currentStep === 'upload' && renderUploadStep()}
       {currentStep === 'preview' && renderPreviewStep()}
       {currentStep === 'target-selection' && renderTargetSelectionStep()}
-      
-      {/* Additional steps will be implemented in next parts */}
+      {currentStep === 'auto-label' && renderAutoLabelStep()}
+      {currentStep === 'manual-assign' && renderManualAssignStep()}
+      {currentStep === 'manual-edit' && renderManualEditStep()}
+      {currentStep === 'direct-edit' && renderDirectEditStep()}
     </View>
   );
 };
@@ -771,6 +1177,253 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
+  },
+  matchesList: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  matchItem: {
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  matchHeader: {
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
+  confidenceScore: {
+    backgroundColor: '#1db954',
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  matchComparison: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  originalTrack: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  newTrack: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  arrow: {
+    marginHorizontal: 16,
+  },
+  arrowText: {
+    color: '#1db954',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  comparisonLabel: {
+    color: '#666',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  comparisonArtwork: {
+    width: 60,
+    height: 60,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  comparisonTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  comparisonArtist: {
+    color: '#b3b3b3',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  assignmentContainer: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  assignmentSection: {
+    marginBottom: 30,
+  },
+  assignmentSectionTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  horizontalScroll: {
+    flexDirection: 'row',
+  },
+  assignmentItem: {
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 12,
+    width: 120,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedAssignmentItem: {
+    borderColor: '#1db954',
+  },
+  assignmentArtwork: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  assignmentTitle: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  assignmentArtist: {
+    color: '#b3b3b3',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  assignmentPreview: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 20,
+  },
+  previewTitle: {
+    color: '#1db954',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  previewComparison: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  previewItem: {
+    flex: 1,
+  },
+  previewLabel: {
+    color: '#666',
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  previewValue: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  editContainer: {
+    flex: 1,
+    marginBottom: 20,
+  },
+  editSection: {
+    marginBottom: 30,
+  },
+  playlistEditItem: {
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  playlistEditHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  massEditButton: {
+    backgroundColor: '#1db954',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  massEditButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  editTrackItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  editModal: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editModalContent: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 400,
+    padding: 20,
+  },
+  editModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  editModalTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  editForm: {
+    marginBottom: 20,
+  },
+  editLabel: {
+    color: '#b3b3b3',
+    fontSize: 14,
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  editInput: {
+    backgroundColor: '#282828',
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    fontSize: 16,
+  },
+  editModalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editCancelButton: {
+    flex: 1,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  editCancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  editSaveButton: {
+    flex: 1,
+    backgroundColor: '#1db954',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  editSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
