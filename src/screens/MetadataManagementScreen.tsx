@@ -78,6 +78,11 @@ const MetadataManagementScreen: React.FC = () => {
     genre: '',
     year: '',
   });
+  const [autoLabelResults, setAutoLabelResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
+  const [massEditSelection, setMassEditSelection] = useState<{ [playlistId: string]: string[] }>({});
+
 
   // Initialize playlists with selection state
   React.useEffect(() => {
@@ -142,80 +147,139 @@ const MetadataManagementScreen: React.FC = () => {
     return metadata;
   };
 
-  const performAutoLabeling = () => {
-    const matches = new Map<string, string>();
+  const handleAutoLabel = async () => {
+    if (!uploadedMetadata) return;
 
-    uploadedMetadata.forEach(metaTrack => {
-      // Find best matching track based on title similarity
-      const bestMatch = tracks.find(track => {
-        const titleSimilarity = calculateSimilarity(
-          track.title.toLowerCase(),
-          metaTrack.title.toLowerCase()
-        );
-        return titleSimilarity > 0.7; // 70% similarity threshold
+    setIsLoading(true);
+    try {
+      const matches: any[] = [];
+
+      // Get tracks to process based on selection
+      const tracksToProcess = selectedPlaylist 
+        ? playlists.find(p => p.id === selectedPlaylist)?.tracks || []
+        : selectedTracks.size > 0 
+          ? Array.from(selectedTracks).map(trackId => tracks.find(track => track.id === trackId))
+          : tracks;
+
+      // Auto-match logic based on title similarity
+      tracksToProcess.forEach(track => {
+        const bestMatch = uploadedMetadata.find(meta => {
+          const trackTitle = track.title?.toLowerCase().replace(/\s+/g, '') || '';
+          const metaTitle = meta.title?.toLowerCase().replace(/\s+/g, '') || '';
+
+          // Simple similarity check - could be enhanced with fuzzy matching
+          return trackTitle.includes(metaTitle) || 
+                 metaTitle.includes(trackTitle) ||
+                 trackTitle === metaTitle;
+        });
+
+        if (bestMatch) {
+          matches.push({
+            track,
+            metadata: bestMatch,
+            confidence: calculateMatchConfidence(track, bestMatch)
+          });
+        }
       });
 
-      if (bestMatch) {
-        matches.set(bestMatch.id, metaTrack.id);
-      }
-    });
+      // Apply matched metadata
+      matches.forEach(match => {
+        const updatedTrack = {
+          ...match.track,
+          title: match.metadata.title || match.track.title,
+          artist: match.metadata.artist || match.track.artist,
+          album: match.metadata.album || match.track.album,
+          artwork: match.metadata.albumArt || match.track.albumArt,
+          year: match.metadata.year || match.track.year,
+          genre: match.metadata.genre || match.track.genre,
+          duration: match.metadata.duration || match.track.duration
+        };
 
-    setAutoLabelMatches(matches);
+        updateTrack(updatedTrack.id, updatedTrack);
+      });
 
-    // Apply matches automatically
-    matches.forEach((metaId, trackId) => {
-      const metaTrack = uploadedMetadata.find(m => m.id === metaId);
-      if (metaTrack) {
-        updateTrack(trackId, {
-          title: metaTrack.title,
-          artist: metaTrack.artist,
-          album: metaTrack.album,
-          artwork: metaTrack.albumArt,
-        });
-      }
-    });
-
-    Alert.alert(
-      'Auto-labeling Complete',
-      `Successfully matched and updated ${matches.size} tracks.`,
-      [
-        {
-          text: 'Manual Edit',
-          onPress: () => setCurrentStep('post-auto-edit'),
-        },
-        {
-          text: 'Done',
-          onPress: () => setCurrentStep('upload'),
-        },
-      ]
-    );
-  };
-
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-    const editDistance = levenshteinDistance(longer, shorter);
-    return (longer.length - editDistance) / longer.length;
-  };
-
-  const levenshteinDistance = (str1: string, str2: string): number => {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-
-    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-
-    for (let j = 1; j <= str2.length; j++) {
-      for (let i = 1; i <= str1.length; i++) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i] + 1,
-          matrix[j - 1][i - 1] + indicator
-        );
-      }
+      setAutoLabelResults(matches);
+      setCurrentStep('post-auto-edit');
+    } catch (error) {
+      console.error('Auto-labeling failed:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return matrix[str2.length][str1.length];
+  const calculateMatchConfidence = (track: any, metadata: any): number => {
+    let confidence = 0;
+    const trackTitle = track.title?.toLowerCase() || '';
+    const metaTitle = metadata.title?.toLowerCase() || '';
+
+    if (trackTitle === metaTitle) confidence += 0.6;
+    else if (trackTitle.includes(metaTitle) || metaTitle.includes(trackTitle)) confidence += 0.4;
+
+    if (track.artist?.toLowerCase() === metadata.artist?.toLowerCase()) confidence += 0.3;
+    if (track.album?.toLowerCase() === metadata.album?.toLowerCase()) confidence += 0.1;
+
+    return Math.min(confidence, 1.0);
+  };
+
+  const handleManualEdit = (trackId: string, field: string, value: string) => {
+    const track = tracks.find(t => t.id === trackId);
+    if (!track) return;
+
+    const updatedTrack = {
+      ...track,
+      [field]: value
+    };
+
+    updateTrack(trackId, updatedTrack);
+  };
+
+  const handleMassEdit = (playlistId: string, field: string, value: string) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (!playlist) return;
+
+    const selectedTrackIds = massEditSelection[playlistId] || [];
+    const tracksToUpdate = selectedTrackIds.length > 0 
+      ? playlist.tracks.filter(t => selectedTrackIds.includes(t.id))
+      : playlist.tracks;
+
+    tracksToUpdate.forEach(track => {
+      const updatedTrack = {
+        ...track,
+        [field]: value
+      };
+      updateTrack(track.id, updatedTrack);
+    });
+  };
+
+  const toggleMassEditSelection = (playlistId: string, trackId: string) => {
+    setMassEditSelection(prev => {
+      const currentSelection = prev[playlistId] || [];
+      const isSelected = currentSelection.includes(trackId);
+
+      return {
+        ...prev,
+        [playlistId]: isSelected
+          ? currentSelection.filter(id => id !== trackId)
+          : [...currentSelection, trackId]
+      };
+    });
+  };
+
+  const selectAllTracksForMassEdit = (playlistId: string) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (!playlist) return;
+
+    setMassEditSelection(prev => ({
+      ...prev,
+      [playlistId]: playlist.tracks.map(t => t.id)
+    }));
+  };
+
+  const deselectAllTracksForMassEdit = (playlistId: string) => {
+    setMassEditSelection(prev => ({
+      ...prev,
+      [playlistId]: []
+    }));
   };
 
   const togglePlaylistExpansion = (playlistId: string) => {
@@ -417,7 +481,7 @@ const MetadataManagementScreen: React.FC = () => {
           title="Label All Tracks"
           onPress={() => {
             setSelectedTracks(new Set(tracks.map(t => t.id)));
-            performAutoLabeling();
+            handleAutoLabel();
           }}
           icon={SelectAll}
           style={styles.selectionButton}
@@ -652,6 +716,47 @@ const MetadataManagementScreen: React.FC = () => {
       </View>
     );
   };
+
+  const renderPostAutoLabel = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Auto-Labeling Complete</Text>
+      <Text style={styles.stepDescription}>
+        Successfully matched {autoLabelResults.length} tracks. Would you like to manually edit the metadata?
+      </Text>
+
+      <ScrollView style={styles.metadataList}>
+        {autoLabelResults.map((result, index) => (
+          <ModernCard key={index} style={styles.trackPreview}>
+            <View style={styles.trackPreviewContent}>
+              {result.metadata.albumArt && (
+                <Image source={{ uri: result.metadata.albumArt }} style={styles.albumArt} />
+              )}
+              <View style={styles.trackInfo}>
+                <Text style={styles.trackTitle}>{result.metadata.title}</Text>
+                <Text style={styles.trackArtist}>{result.metadata.artist}</Text>
+                <Text style={styles.trackAlbum}>
+                Match confidence: {(result.confidence * 100).toFixed(0)}%
+                </Text>
+              </View>
+            </View>
+          </ModernCard>
+        ))}
+      </ScrollView>
+
+      <View style={styles.navigationButtons}>
+        <ModernButton
+          title="Manual Edit"
+          onPress={() => setCurrentStep('manual-edit')}
+          style={styles.backButton}
+        />
+        <ModernButton
+          title="Done"
+          onPress={() => setCurrentStep('upload')}
+          icon={Check}
+        />
+      </View>
+    </View>
+  );
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -980,6 +1085,66 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     backgroundColor: '#333333',
+  },
+  resultItem: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resultInfo: {
+    marginLeft: 12,
+  },
+  resultTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  resultArtist: {
+    fontSize: 14,
+    color: '#B3B3B3',
+  },
+  resultConfidence: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  button: {
+    backgroundColor: '#1DB954',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  secondaryButton: {
+    backgroundColor: '#333333',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+  },
+  secondaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  stepSubtitle: {
+    fontSize: 16,
+    color: '#B3B3B3',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 
