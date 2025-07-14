@@ -14,6 +14,7 @@ import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import MetadataManagementScreen from './screens/MetadataManagementScreen';
+import TabNavigator from './components/TabNavigator';
 
 // Conditional imports for native vs web
 let TrackPlayer: any;
@@ -171,7 +172,7 @@ function App(): JSX.Element {
     );
   }
 
-  // Native version with bottom navigation (same as web but with native navigation)
+  // Native version with bottom navigation
   return (
     <ErrorBoundary>
       <MusicProvider>
@@ -179,6 +180,7 @@ function App(): JSX.Element {
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="Player" component={PlayerScreen} />
+            <Stack.Screen name="MetadataManagement" component={MetadataManagementScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </MusicProvider>
