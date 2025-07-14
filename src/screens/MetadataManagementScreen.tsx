@@ -126,7 +126,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     if (Platform.OS === 'web') {
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = '.json,.txt,.csv,text/plain,application/json,text/csv';
+      fileInput.accept = '.json,.txt,.csv,text/plain,application/json,text/csv,*';
       fileInput.onchange = async (e: Event) => {
         const target = e.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) return;
@@ -137,27 +137,45 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         try {
           let metadata: any;
           if (file.name.endsWith('.json')) {
-            metadata = JSON.parse(text);
-             // Extract tracks from Spotify-style metadata
-            const spotifyTracks = extractSpotifyTracks(metadata);
+            console.log('Parsing JSON file...');
+            const parsedData = JSON.parse(text);
+            console.log('Parsed JSON data:', parsedData);
+            
+            // Extract tracks from Spotify-style metadata
+            const spotifyTracks = extractSpotifyTracks(parsedData);
+            console.log('Extracted Spotify tracks:', spotifyTracks.length);
+            
             if (spotifyTracks.length > 0) {
               metadata = spotifyTracks.map(spotifyTrack => ({
                 id: spotifyTrack.id,
                 title: spotifyTrack.name,
                 artist: spotifyTrack.artists.map(artist => artist.name).join(', '),
                 album: spotifyTrack.album.name,
-                albumArt: spotifyTrack.album.images[0]?.url,
+                albumArt: spotifyTrack.album.images?.[0]?.url,
+                duration: spotifyTrack.duration_ms ? `${Math.floor(spotifyTrack.duration_ms / 60000)}:${Math.floor((spotifyTrack.duration_ms % 60000) / 1000).toString().padStart(2, '0')}` : undefined,
+                year: spotifyTrack.album.release_date ? new Date(spotifyTrack.album.release_date).getFullYear().toString() : undefined,
+                trackNumber: spotifyTrack.track_number,
               }));
+            } else {
+              console.log('No Spotify tracks found, trying direct format...');
+              // Try to handle the data as-is if it's already in the right format
+              if (Array.isArray(parsedData)) {
+                metadata = parsedData;
+              } else {
+                metadata = [];
+              }
             }
           } else {
             // Parse CSV or TXT format
             metadata = parseTextMetadata(text);
           }
 
+          console.log('Final metadata:', metadata.length, 'tracks');
           setUploadedMetadata(metadata);
           setCurrentStep('preview');
         } catch (error) {
-          Alert.alert('Error', 'Failed to parse metadata file');
+          console.error('Error parsing metadata file:', error);
+          Alert.alert('Error', `Failed to parse metadata file: ${error.message}`);
         }
       };
       fileInput.click();
@@ -187,19 +205,35 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const extractSpotifyTracks = (metadata: SpotifyMetadata): SpotifyTrack[] => {
+    console.log('Extracting tracks from metadata:', metadata);
+    
     // Handle different Spotify API response formats
-    if (metadata.tracks?.items) return metadata.tracks.items;
-    if (metadata.tracks && Array.isArray(metadata.tracks)) return metadata.tracks;
-    if (metadata.items) return metadata.items;
-    if (Array.isArray(metadata)) return metadata;
+    if (metadata.tracks?.items) {
+      console.log('Found tracks.items format');
+      return metadata.tracks.items;
+    }
+    if (metadata.tracks && Array.isArray(metadata.tracks)) {
+      console.log('Found tracks array format, length:', metadata.tracks.length);
+      return metadata.tracks;
+    }
+    if (metadata.items) {
+      console.log('Found items format');
+      return metadata.items;
+    }
+    if (Array.isArray(metadata)) {
+      console.log('Found root array format');
+      return metadata;
+    }
 
     // Look for tracks in any property
     for (const key in metadata) {
       if (Array.isArray(metadata[key]) && metadata[key][0]?.name) {
+        console.log('Found tracks in property:', key);
         return metadata[key];
       }
     }
 
+    console.log('No tracks found in metadata');
     return [];
   };
 
