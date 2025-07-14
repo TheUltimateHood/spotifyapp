@@ -206,30 +206,36 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 
   const extractSpotifyTracks = (metadata: SpotifyMetadata): SpotifyTrack[] => {
     console.log('Extracting tracks from metadata:', metadata);
+    console.log('Metadata type:', typeof metadata);
+    console.log('Metadata keys:', Object.keys(metadata));
     
     // Handle different Spotify API response formats
     if (metadata.tracks?.items) {
-      console.log('Found tracks.items format');
+      console.log('Found tracks.items format, length:', metadata.tracks.items.length);
       return metadata.tracks.items;
     }
     if (metadata.tracks && Array.isArray(metadata.tracks)) {
       console.log('Found tracks array format, length:', metadata.tracks.length);
+      console.log('First track sample:', metadata.tracks[0]);
       return metadata.tracks;
     }
     if (metadata.items) {
-      console.log('Found items format');
+      console.log('Found items format, length:', metadata.items.length);
       return metadata.items;
     }
     if (Array.isArray(metadata)) {
-      console.log('Found root array format');
+      console.log('Found root array format, length:', metadata.length);
       return metadata;
     }
 
     // Look for tracks in any property
     for (const key in metadata) {
-      if (Array.isArray(metadata[key]) && metadata[key][0]?.name) {
-        console.log('Found tracks in property:', key);
-        return metadata[key];
+      if (Array.isArray(metadata[key])) {
+        console.log(`Found array in property "${key}" with length:`, metadata[key].length);
+        if (metadata[key][0]?.name) {
+          console.log('Found tracks in property:', key, 'first track:', metadata[key][0]);
+          return metadata[key];
+        }
       }
     }
 
