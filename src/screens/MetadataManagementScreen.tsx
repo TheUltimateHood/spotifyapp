@@ -372,9 +372,8 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 
       <View style={styles.formatInfo}>
         <Text style={styles.formatTitle}>Supported formats:</Text>
-        <Text style={styles.formatText}>• JSON: Array of track objects</Text>
-        <Text style={styles.formatText}>• CSV: title,artist,album,genre,year,duration</Text>
-        <Text style={styles.formatText}>• TXT: Same as CSV format</Text>
+        <Text style={styles.formatText}>• JSON: Spotify Web API format</Text>
+        <Text style={styles.formatText}>• CSV/TXT: title,artist,album,genre,year,duration</Text>
       </View>
     </ModernCard>
   );
@@ -823,12 +822,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
     padding: 16,
+    minHeight: '100vh',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    gap: 16,
   },
   backButton: {
     padding: 8,
@@ -837,17 +837,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    flex: 1,
   },
   stepIndicator: {
     backgroundColor: '#1DB954',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    alignSelf: 'flex-start',
   },
   stepText: {
-    color: '#000000',
+    color: '#B3B3B3',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   stepContainer: {
     flex: 1,
@@ -932,10 +934,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+    flexWrap: 'wrap',
   },
   backButton: {
     flex: 1,
     backgroundColor: '#333333',
+    minWidth: 120,
   },
   methodCard: {
     padding: 0,
@@ -1059,6 +1063,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333333',
+    minHeight: 44,
   },
   tracksList: {
     flex: 1,
