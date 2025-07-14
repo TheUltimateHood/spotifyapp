@@ -26,7 +26,10 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
           <TouchableOpacity
             key={tab.id}
             style={styles.tab}
-            onPress={() => onTabChange(tab.id)}
+            onPress={() => {
+              console.log('Bottom nav button pressed:', tab.id);
+              onTabChange(tab.id);
+            }}
           >
             <IconComponent
               size={24}

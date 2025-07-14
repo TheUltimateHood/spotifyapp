@@ -140,6 +140,7 @@ function App(): JSX.Element {
   // Web version with bottom navigation
   if (Platform.OS === 'web') {
     const handleTabChange = (tab: string) => {
+      console.log('Tab changed to:', tab);
       setActiveTab(tab);
       setCurrentScreen(tab as any);
     };
