@@ -1,4 +1,6 @@
 
+// NOTE: This component is no longer used as we've unified mobile and web UI
+// Both platforms now use the same BottomNavigation component and screen structure
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Platform } from 'react-native';

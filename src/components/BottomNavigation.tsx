@@ -21,7 +21,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
       {tabs.map((tab) => {
         const IconComponent = tab.icon;
         const isActive = activeTab === tab.id;
-        
+
         return (
           <TouchableOpacity
             key={tab.id}
@@ -45,20 +45,17 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 
 const styles = StyleSheet.create({
   container: {
-    position: 'fixed',
+    flexDirection: 'row',
+    backgroundColor: '#1a1a1a',
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    paddingBottom: Platform.OS === 'ios' ? 34 : 10, // Account for home indicator on iOS
+    paddingTop: 10,
+    height: Platform.OS === 'ios' ? 90 : 70,
+    position: Platform.OS === 'web' ? 'relative' : 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-    paddingTop: 10,
-    borderTopWidth: 0.5,
-    borderTopColor: '#333',
-    zIndex: 9998,
-    width: '100%',
-    minHeight: Platform.OS === 'ios' ? 80 : 70,
-    maxHeight: Platform.OS === 'ios' ? 80 : 70,
   },
   tab: {
     flex: 1,

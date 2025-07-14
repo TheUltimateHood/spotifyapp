@@ -172,17 +172,37 @@ function App(): JSX.Element {
     );
   }
 
-  // Native version with bottom navigation
+  // Native version with same UI as web
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentScreen(tab as any);
+  };
+
   return (
     <ErrorBoundary>
       <MusicProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Main" component={TabNavigator} />
-            <Stack.Screen name="Player" component={PlayerScreen} />
-            <Stack.Screen name="MetadataManagement" component={MetadataManagementScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
+        <View style={[styles.container, styles.mobileContainer]}>
+          <View style={[styles.content, styles.mobileContent]}>
+            {currentScreen === 'Home' && <NewHomeScreen onTrackSelect={handleTrackSelect} />}
+            {currentScreen === 'Library' && <LibraryScreen navigation={navigation} />}
+            {currentScreen === 'Playlists' && <PlaylistsScreen navigation={navigation} />}
+            {currentScreen === 'Search' && <SearchScreen />}
+            {currentScreen === 'Settings' && <SettingsScreen navigation={navigation} />}
+            {currentScreen === 'MetadataManagement' && <MetadataManagementScreen navigation={navigation} />}
+          </View>
+          <MiniPlayer onPress={() => setShowPlayerModal(true)} />
+          <ShuffleRepeatControlsBar />
+          <BottomNavigation 
+            activeTab={activeTab} 
+            onTabChange={handleTabChange} 
+          />
+          {showPlayerModal && (
+            <View style={styles.playerModal}>
+              <PlayerScreen navigation={{ goBack: () => setShowPlayerModal(false) }} />
+            </View>
+          )}
+        </View>
       </MusicProvider>
     </ErrorBoundary>
   );
@@ -222,6 +242,26 @@ const styles = StyleSheet.create({
     borderTopColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  mobileContainer: {
+    ...Platform.select({
+      ios: {
+        paddingTop: 44, // Account for status bar on iOS
+      },
+      android: {
+        paddingTop: 24, // Account for status bar on Android
+      },
+    }),
+  },
+  mobileContent: {
+    ...Platform.select({
+      ios: {
+        paddingBottom: 120, // Account for bottom navigation and safe area
+      },
+      android: {
+        paddingBottom: 100, // Account for bottom navigation
+      },
+    }),
   },
 });
 

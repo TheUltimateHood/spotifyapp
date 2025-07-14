@@ -78,7 +78,7 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
         >
           <SkipBack size={isDesktop ? 20 : 18} color="#fff" />
         </TouchableOpacity>
-        
+
         <TouchableOpacity 
           style={[styles.controlButton, styles.playButton]} 
           onPress={handlePlayPause}
@@ -90,7 +90,7 @@ const MiniPlayer: React.FC<MiniPlayerProps> = ({ onPress }) => {
             <Play size={isDesktop ? 24 : 20} color="#000" />
           )}
         </TouchableOpacity>
-        
+
         <TouchableOpacity 
           style={[styles.controlButton, styles.secondaryButton]} 
           onPress={handleNext}
@@ -113,6 +113,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    ...Platform.select({
+      web: {
+        position: 'relative',
+      },
+      default: {
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? 90 : 70, // Above bottom navigation
+        left: 0,
+        right: 0,
+      },
+    }),
   },
   containerDesktop: {
     maxWidth: 1200,
