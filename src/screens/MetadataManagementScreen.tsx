@@ -110,7 +110,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     if (Platform.OS === 'web') {
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = '.json,.txt,.csv';
+      fileInput.accept = '.json,.txt,.csv,text/plain,application/json,text/csv';
       fileInput.onchange = async (e: Event) => {
         const target = e.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) return;
@@ -387,28 +387,28 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         </Text>
       </ModernCard>
 
-      <ScrollView style={styles.metadataList}>
+      <ScrollView style={styles.metadataListFixed}>
         {uploadedMetadata.map(track => (
-          <ModernCard key={track.id} style={styles.trackPreview}>
-            <View style={styles.trackPreviewContent}>
+          <ModernCard key={track.id} style={styles.trackPreviewSmall}>
+            <View style={styles.trackPreviewContentSmall}>
               {track.albumArt && (
-                <Image source={{ uri: track.albumArt }} style={styles.albumArt} />
+                <Image source={{ uri: track.albumArt }} style={styles.albumArtSmall} />
               )}
               <View style={styles.trackInfo}>
-                <Text style={styles.trackTitle}>{track.title}</Text>
-                <Text style={styles.trackArtist}>{track.artist}</Text>
-                <Text style={styles.trackAlbum}>{track.album}</Text>
+                <Text style={styles.trackTitleSmall}>{track.title}</Text>
+                <Text style={styles.trackArtistSmall}>{track.artist}</Text>
+                <Text style={styles.trackAlbumSmall}>{track.album}</Text>
               </View>
             </View>
           </ModernCard>
         ))}
       </ScrollView>
 
-      <View style={styles.navigationButtons}>
+      <View style={styles.fixedNavigationButtons}>
         <ModernButton
           title="Back"
           onPress={() => setCurrentStep('upload')}
-          style={styles.backButton}
+          style={styles.backButtonNav}
         />
         <ModernButton
           title="Continue"
@@ -836,6 +836,7 @@ const styles = StyleSheet.create({
     height: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   headerTitle: {
     fontSize: 24,
@@ -896,10 +897,23 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 16,
   },
+  metadataListFixed: {
+    flex: 1,
+    marginBottom: 0,
+    maxHeight: 400,
+  },
   trackPreview: {
     marginBottom: 8,
   },
+  trackPreviewSmall: {
+    marginBottom: 6,
+    padding: 8,
+  },
   trackPreviewContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trackPreviewContentSmall: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -908,6 +922,12 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 4,
     marginRight: 12,
+  },
+  albumArtSmall: {
+    width: 30,
+    height: 30,
+    borderRadius: 4,
+    marginRight: 8,
   },
   smallAlbumArt: {
     width: 40,
@@ -924,14 +944,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 4,
   },
+  trackTitleSmall: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
   trackArtist: {
     fontSize: 14,
     color: '#E6E6E6',
     marginTop: 5,
     marginBottom: 2,
   },
+  trackArtistSmall: {
+    fontSize: 12,
+    color: '#E6E6E6',
+    marginBottom: 1,
+  },
   trackAlbum: {
     fontSize: 12,
+    color: '#666666',
+  },
+  trackAlbumSmall: {
+    fontSize: 11,
     color: '#666666',
   },
   navigationButtons: {
@@ -940,10 +975,21 @@ const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
   },
-  backButton: {
+  backButtonNav: {
     flex: 1,
     backgroundColor: '#333333',
     minWidth: 120,
+  },
+  fixedNavigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    flexWrap: 'wrap',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+    backgroundColor: '#000000',
   },
   methodCard: {
     padding: 0,
