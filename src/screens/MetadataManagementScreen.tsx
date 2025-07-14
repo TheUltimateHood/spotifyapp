@@ -996,8 +996,7 @@ const styles = StyleSheet.create({
   },
   trackArtist: {
     fontSize: 14,
-```text
-color: '#E6E6E6',
+    color: '#E6E6E6',
     marginTop: 5,
     marginBottom: 2,
   },
