@@ -221,9 +221,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 90,
+    paddingBottom: Platform.OS === 'ios' ? 120 : 100,
     minHeight: '100vh',
     overflowY: 'auto',
+    backgroundColor: '#121212',
   },
   playerModal: {
     position: 'absolute',
@@ -254,12 +255,13 @@ const styles = StyleSheet.create({
     }),
   },
   mobileContent: {
+    backgroundColor: '#121212',
     ...Platform.select({
       ios: {
-        paddingBottom: 120, // Account for bottom navigation and safe area
+        paddingBottom: 140, // Account for bottom navigation and safe area
       },
       android: {
-        paddingBottom: 100, // Account for bottom navigation
+        paddingBottom: 120, // Account for bottom navigation
       },
     }),
   },

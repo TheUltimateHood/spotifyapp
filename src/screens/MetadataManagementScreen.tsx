@@ -920,7 +920,8 @@ const styles = StyleSheet.create({
   },
   trackArtist: {
     fontSize: 14,
-    color: '#B3B3B3',
+    color: '#E6E6E6',
+    marginTop: 5,
     marginBottom: 2,
   },
   trackAlbum: {

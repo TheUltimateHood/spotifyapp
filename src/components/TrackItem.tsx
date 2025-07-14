@@ -207,6 +207,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  trackArtist: {
+    fontSize: 14,
+    color: '#B3B3B3',
+    marginTop: 5,
+    marginBottom: 2,
+  },
 });
 
 export default TrackItem;

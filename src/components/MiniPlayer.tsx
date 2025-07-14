@@ -175,7 +175,9 @@ const styles = StyleSheet.create({
   secondaryButton: {
     width: isDesktop ? 36 : 32,
     height: isDesktop ? 36 : 32,
-    backgroundColor: '#404040',
+    backgroundColor: '#121212',
+  borderTopWidth: 1,
+  borderTopColor: '#333',
   },
 });
 

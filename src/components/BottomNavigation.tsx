@@ -46,16 +46,17 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121212',
     borderTopWidth: 1,
     borderTopColor: '#333',
     paddingBottom: Platform.OS === 'ios' ? 34 : 10, // Account for home indicator on iOS
     paddingTop: 10,
     height: Platform.OS === 'ios' ? 90 : 70,
-    position: Platform.OS === 'web' ? 'relative' : 'absolute',
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 100,
   },
   tab: {
     flex: 1,
