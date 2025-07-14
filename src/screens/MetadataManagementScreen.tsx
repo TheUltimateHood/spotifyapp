@@ -831,7 +831,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   backButton: {
-    padding: 8,
+    padding: 0,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 24,
@@ -840,7 +844,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepIndicator: {
-    backgroundColor: '#1DB954',
+    backgroundColor: '#333333',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
