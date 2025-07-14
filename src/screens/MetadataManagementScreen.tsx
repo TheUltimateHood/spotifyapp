@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -25,10 +25,18 @@ import {
   ChevronDown,
   SelectAll,
 } from 'lucide-react';
-import { WebMusicContext } from '../context/WebMusicContext';
-import { MusicContext } from '../context/MusicContext';
 import ModernButton from '../components/ModernButton';
 import ModernCard from '../components/ModernCard';
+
+// Platform-specific imports
+let useMusicContext: any;
+if (Platform.OS === 'web') {
+  const { useMusicContext: webContext } = require('../context/WebMusicContext');
+  useMusicContext = webContext;
+} else {
+  const { useMusicContext: nativeContext } = require('../context/MusicContext');
+  useMusicContext = nativeContext;
+}
 
 interface MetadataTrack {
   id: string;
@@ -66,9 +74,7 @@ interface MetadataManagementScreenProps {
 }
 
 const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation }) => {
-  const isWeb = Platform.OS === 'web';
-  const musicContext = isWeb ? useContext(WebMusicContext) : useContext(MusicContext);
-  const { tracks, playlists, updateTrack, createPlaylist } = musicContext;
+  const { tracks, playlists, updateTrack, createPlaylist } = useMusicContext();
 
   const [currentStep, setCurrentStep] = useState<ManagementStep>('upload');
   const [uploadedMetadata, setUploadedMetadata] = useState<MetadataTrack[]>([]);
