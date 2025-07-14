@@ -138,6 +138,11 @@ function App(): JSX.Element {
 
   // Web version with bottom navigation
   if (Platform.OS === 'web') {
+    const handleTabChange = (tab: string) => {
+      setActiveTab(tab);
+      setCurrentScreen(tab as any);
+    };
+
     return (
       <Provider>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
@@ -154,7 +159,7 @@ function App(): JSX.Element {
           <ShuffleRepeatControlsBar />
           <BottomNavigation 
             activeTab={activeTab} 
-            onTabChange={setActiveTab} 
+            onTabChange={handleTabChange} 
           />
           {showPlayerModal && (
             <View style={styles.playerModal}>
