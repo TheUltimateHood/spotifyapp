@@ -13,6 +13,7 @@ import ShuffleRepeatControls from './components/ShuffleRepeatControls';
 import { WebMusicProvider } from './context/WebMusicContext';
 import { MusicProvider } from './context/MusicContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import MetadataManagementScreen from './screens/MetadataManagementScreen';
 
 // Conditional imports for native vs web
 let TrackPlayer: any;
@@ -41,6 +42,7 @@ function App(): JSX.Element {
   const [isPlayerReady, setIsPlayerReady] = useState(Platform.OS === 'web');
   const [activeTab, setActiveTab] = useState('Home');
   const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<'Home' | 'Library' | 'Player' | 'Playlists' | 'Search' | 'Settings' | 'MetadataManagement'>('Home');
 
   console.log('App component loading, Platform.OS:', Platform.OS);
   console.log('isPlayerReady:', isPlayerReady);
@@ -111,6 +113,12 @@ function App(): JSX.Element {
     );
   };
 
+  const navigation = {
+    navigate: (screen: string) => {
+      setCurrentScreen(screen as any);
+    },
+  };
+
   const renderCurrentScreen = () => {
     switch (activeTab) {
       case 'Home':
@@ -122,7 +130,7 @@ function App(): JSX.Element {
       case 'Playlists':
         return <PlaylistsScreen onTrackSelect={handleTrackSelect} />;
       case 'Settings':
-        return <SettingsScreen />;
+        return <SettingsScreen navigation={navigation} />;
       default:
         return <NewHomeScreen onTrackSelect={handleTrackSelect} />;
     }
@@ -135,7 +143,12 @@ function App(): JSX.Element {
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
         <View style={styles.container}>
           <View style={styles.content}>
-            {renderCurrentScreen()}
+            {currentScreen === 'Home' && <NewHomeScreen onTrackSelect={handleTrackSelect} />}
+            {currentScreen === 'Library' && <LibraryScreen navigation={navigation} />}
+            {currentScreen === 'Playlists' && <PlaylistsScreen navigation={navigation} />}
+            {currentScreen === 'Search' && <SearchScreen />}
+            {currentScreen === 'Settings' && <SettingsScreen navigation={navigation} />}
+            {currentScreen === 'MetadataManagement' && <MetadataManagementScreen navigation={navigation} />}
           </View>
           <MiniPlayer onPress={() => setShowPlayerModal(true)} />
           <ShuffleRepeatControlsBar />

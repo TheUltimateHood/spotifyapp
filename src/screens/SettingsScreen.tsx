@@ -32,7 +32,11 @@ if (Platform.OS === 'web') {
   useMusicContext = nativeContext;
 }
 
-const SettingsScreen: React.FC = () => {
+interface SettingsScreenProps {
+  navigation: any;
+}
+
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const context = useMusicContext();
   const { 
     tracks, 
@@ -44,7 +48,6 @@ const SettingsScreen: React.FC = () => {
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showDeleteSelectedConfirmation, setShowDeleteSelectedConfirmation] = useState(false);
   const [showTrackSelectionModal, setShowTrackSelectionModal] = useState(false);
-  const [showMetadataModal, setShowMetadataModal] = useState(false);
   const [selectedTracksForDeletion, setSelectedTracksForDeletion] = useState<string[]>([]);
 
   const handleClearTracks = () => {
@@ -106,7 +109,6 @@ const SettingsScreen: React.FC = () => {
         });
       }
     });
-    setShowMetadataModal(false);
   };
 
   const renderSettingItem = (item: any) => (
@@ -153,7 +155,7 @@ const SettingsScreen: React.FC = () => {
         {/* Storage Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Storage</Text>
-          
+
           {renderSettingItem({
             icon: <Database size={20} color="#fff" />,
             title: 'Library Size',
@@ -161,7 +163,7 @@ const SettingsScreen: React.FC = () => {
             onPress: () => {},
             disabled: true,
           })}
-          
+
           <TouchableOpacity 
             style={[styles.settingItem, styles.warningButton]} 
             onPress={handleDeleteSelectedTracks}
@@ -208,10 +210,10 @@ const SettingsScreen: React.FC = () => {
         {/* Metadata Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Metadata</Text>
-          
+
           <TouchableOpacity 
             style={styles.settingItem} 
-            onPress={() => setShowMetadataModal(true)}
+            onPress={() => navigation.navigate('MetadataManagement')}
           >
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
@@ -231,7 +233,7 @@ const SettingsScreen: React.FC = () => {
         {/* App Info Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Info</Text>
-          
+
           {renderSettingItem({
             icon: <Info size={20} color="#fff" />,
             title: 'Version',
@@ -239,7 +241,7 @@ const SettingsScreen: React.FC = () => {
             onPress: () => {},
             disabled: true,
           })}
-          
+
           {Platform.OS === 'web' && renderSettingItem({
             icon: <Download size={20} color="#fff" />,
             title: 'Platform',
@@ -275,14 +277,6 @@ const SettingsScreen: React.FC = () => {
         tracks={tracks}
         onConfirm={handleTrackSelectionConfirm}
         onCancel={() => setShowTrackSelectionModal(false)}
-      />
-
-      <MetadataManagementModal
-        visible={showMetadataModal}
-        onClose={() => setShowMetadataModal(false)}
-        tracks={tracks}
-        playlists={[]} // TODO: Add playlists when needed
-        onApplyMetadata={handleApplyMetadata}
       />
     </SafeAreaView>
   );

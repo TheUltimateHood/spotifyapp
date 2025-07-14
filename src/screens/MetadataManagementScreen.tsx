@@ -59,7 +59,13 @@ type ManagementStep =
   | 'mass-edit'
   | 'post-auto-edit';
 
-const MetadataManagementScreen: React.FC = () => {
+interface MetadataManagementScreenProps {
+  navigation?: {
+    navigate: (screen: string) => void;
+  };
+}
+
+const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation }) => {
   const isWeb = Platform.OS === 'web';
   const musicContext = isWeb ? useContext(WebMusicContext) : useContext(MusicContext);
   const { tracks, playlists, updateTrack, createPlaylist } = musicContext;
@@ -781,6 +787,12 @@ const MetadataManagementScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity 
+          onPress={() => navigation?.navigate('Settings')}
+          style={styles.backButton}
+        >
+          <X size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Metadata Management</Text>
         <View style={styles.stepIndicator}>
           <Text style={styles.stepText}>
@@ -811,6 +823,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
     fontSize: 24,
