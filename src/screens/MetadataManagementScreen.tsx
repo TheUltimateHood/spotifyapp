@@ -73,6 +73,22 @@ interface MetadataManagementScreenProps {
   };
 }
 
+interface SpotifyTrack {
+  id: string;
+  name: string;
+  artists: Array<{ name: string; id?: string }>;
+  album: {
+    name: string;
+    images: Array<{ url: string; height?: number; width?: number }>;
+  };
+}
+
+interface SpotifyMetadata {
+  tracks?: { items: SpotifyTrack[] } | SpotifyTrack[];
+  items?: SpotifyTrack[];
+  [key: string]: any;
+}
+
 const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation }) => {
   const { tracks, playlists, updateTrack, createPlaylist } = useMusicContext();
 
@@ -119,9 +135,20 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         const text = await file.text();
 
         try {
-          let metadata: MetadataTrack[];
+          let metadata: any;
           if (file.name.endsWith('.json')) {
             metadata = JSON.parse(text);
+             // Extract tracks from Spotify-style metadata
+            const spotifyTracks = extractSpotifyTracks(metadata);
+            if (spotifyTracks.length > 0) {
+              metadata = spotifyTracks.map(spotifyTrack => ({
+                id: spotifyTrack.id,
+                title: spotifyTrack.name,
+                artist: spotifyTrack.artists.map(artist => artist.name).join(', '),
+                album: spotifyTrack.album.name,
+                albumArt: spotifyTrack.album.images[0]?.url,
+              }));
+            }
           } else {
             // Parse CSV or TXT format
             metadata = parseTextMetadata(text);
@@ -157,6 +184,23 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     });
 
     return metadata;
+  };
+
+  const extractSpotifyTracks = (metadata: SpotifyMetadata): SpotifyTrack[] => {
+    // Handle different Spotify API response formats
+    if (metadata.tracks?.items) return metadata.tracks.items;
+    if (metadata.tracks && Array.isArray(metadata.tracks)) return metadata.tracks;
+    if (metadata.items) return metadata.items;
+    if (Array.isArray(metadata)) return metadata;
+
+    // Look for tracks in any property
+    for (const key in metadata) {
+      if (Array.isArray(metadata[key]) && metadata[key][0]?.name) {
+        return metadata[key];
+      }
+    }
+
+    return [];
   };
 
   const handleAutoLabel = async () => {
@@ -952,7 +996,8 @@ const styles = StyleSheet.create({
   },
   trackArtist: {
     fontSize: 14,
-    color: '#E6E6E6',
+```text
+color: '#E6E6E6',
     marginTop: 5,
     marginBottom: 2,
   },
