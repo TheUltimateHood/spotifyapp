@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { 
   X, 
   Upload, 
@@ -60,63 +61,64 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
   const [fileName, setFileName] = useState<string>('');
   const [pendingUpdates, setPendingUpdates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!visible) return null;
 
-  const handleFileUpload = (event: any) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const handleFileUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true
+      });
 
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const jsonData = JSON.parse(e.target?.result as string);
-        setMetadataFile(jsonData);
-        
-        // Auto-detect metadata immediately after upload
-        const spotifyTracks = extractSpotifyTracks(jsonData);
-        const updates: any[] = [];
+      if (result.type === 'cancel') return;
 
-        tracks.forEach(track => {
-          const normalizedTitle = track.title.toLowerCase()
+      const fileContent = await result.readAsStringAsync();
+      const jsonData = JSON.parse(fileContent);
+      
+      setFileName(result.name);
+      setMetadataFile(jsonData);
+      
+      // Auto-detect metadata immediately after upload
+      const spotifyTracks = extractSpotifyTracks(jsonData);
+      const updates: any[] = [];
+
+      tracks.forEach(track => {
+        const normalizedTitle = track.title.toLowerCase()
+          .replace(/\s+/g, ' ')
+          .replace(/[\w\s]/g, ' ')
+          .trim();
+
+        const match = spotifyTracks.find(spotifyTrack => {
+          const normalizedSpotifyTitle = spotifyTrack.name.toLowerCase()
             .replace(/\s+/g, ' ')
-            .replace(/[^\w\s]/g, '')
+            .replace(/[\w\s]/g, ' ')
             .trim();
-
-          const match = spotifyTracks.find(spotifyTrack => {
-            const normalizedSpotifyTitle = spotifyTrack.name.toLowerCase()
-              .replace(/\s+/g, ' ')
-              .replace(/[^\w\s]/g, '')
-              .trim();
-            
-            return normalizedSpotifyTitle.includes(normalizedTitle) || 
-                   normalizedTitle.includes(normalizedSpotifyTitle);
-          });
-
-          if (match) {
-            updates.push({
-              trackId: track.id,
-              artistName: match.artists[0]?.name || track.artist,
-              albumArt: match.album.images[0]?.url || track.artwork,
-              spotifyId: match.id,
-              isAutoDetected: true,
-            });
-          }
+          
+          return normalizedSpotifyTitle.includes(normalizedTitle) || 
+                 normalizedTitle.includes(normalizedSpotifyTitle);
         });
 
-        setPendingUpdates(updates);
-        
-        // Switch to preview tab to show results
-        setActiveTab('preview');
-        
-        Alert.alert('Success', `Loaded metadata from ${file.name}\nFound matches for ${updates.length} tracks`);
-      } catch (error) {
-        Alert.alert('Error', 'Invalid JSON file format');
-      }
-    };
-    reader.readAsText(file);
+        if (match) {
+          updates.push({
+            trackId: track.id,
+            artistName: match.artists[0]?.name || track.artist,
+            albumArt: match.album.images[0]?.url || track.artwork,
+            spotifyId: match.id,
+            isAutoDetected: true,
+          });
+        }
+      });
+
+      setPendingUpdates(updates);
+      
+      // Switch to preview tab to show results
+      setActiveTab('preview');
+      
+      Alert.alert('Success', `Loaded metadata from ${result.name}\nFound matches for ${updates.length} tracks`);
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to load JSON file');
+    }
   };
 
   const extractSpotifyTracks = (metadata: SpotifyMetadata): SpotifyTrack[] => {

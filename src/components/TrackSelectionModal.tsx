@@ -31,6 +31,13 @@ const TrackSelectionModal: React.FC<TrackSelectionModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const handleTrackSelect = (trackId: string) => {
+    setSelectedTracks(prev => 
+      prev.includes(trackId) 
+        ? prev.filter(id => id !== trackId)
+        : [...prev, trackId]
+    );
+  };
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
 
   const handleTrackToggle = (trackId: string) => {
