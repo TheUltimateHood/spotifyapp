@@ -84,6 +84,61 @@ body::before {
   filter: brightness(1.1);
 }
 
+/* Metadata button styles */
+.metadata-button {
+  background-color: #1DB954; /* Spotify green */
+  color: #000000; /* Black text */
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  margin: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.metadata-button:hover {
+  background-color: #1ed760; /* Lighter green on hover */
+  transform: translateY(-1px);
+}
+
+.metadata-button:disabled,
+.metadata-button.disabled {
+  background-color: #282828; /* Darker grey for disabled state */
+  color: #b3b3b3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.metadata-button.secondary {
+  background-color: #282828;
+  color: #b3b3b3;
+  border: 1px solid #404040;
+}
+
+.metadata-button.secondary:hover {
+  border-color: #535353;
+  background-color: #333;
+}
+
+/* For non-button clickable elements in metadata */
+.metadata-clickable {
+  color: #1DB954;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.metadata-clickable:hover {
+  color: #1ed760;
+  text-decoration: underline;
+}
+
+/* For non-clickable metadata text */
+.metadata-text {
+  color: #b3b3b3;
+}
+
 /* Card animations */
 .card-enter {
   animation: cardSlideIn 0.5s ease-out;

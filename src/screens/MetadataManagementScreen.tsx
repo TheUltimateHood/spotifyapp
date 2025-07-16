@@ -1377,8 +1377,8 @@ const styles = StyleSheet.create({
   },
   selectionButton: {
     marginBottom: 12,
-    backgroundColor: '#1DB954',
-    borderColor: '#1DB954',
+    backgroundColor: '#333333',
+    borderColor: '#333333',
   },
   selectionButtonText: {
     color: '#FFFFFF',

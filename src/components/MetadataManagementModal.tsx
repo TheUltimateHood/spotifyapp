@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   actionButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#666',
   },
   quickActionText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 12,
     fontWeight: '500',
   },
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   applyButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },

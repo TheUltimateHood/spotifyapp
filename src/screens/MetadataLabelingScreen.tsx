@@ -404,19 +404,19 @@ const MetadataLabelingScreen: React.FC = () => {
           </ScrollView>
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, styles.metadataButton]}
               onPress={() => {
                 setIsAutoLabeling(false);
                 handleManualLabel();
               }}
             >
-              <Text style={styles.buttonText}>Manual Label</Text>
+              <Text style={styles.metadataButtonText}>Manual Label</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, styles.metadataButton]}
               onPress={() => setIsAutoLabeling(false)}
             >
-              <Text style={styles.buttonText}>Finish</Text>
+              <Text style={styles.metadataButtonText}>Finish</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -448,10 +448,10 @@ const MetadataLabelingScreen: React.FC = () => {
       {selectedPlaylist && (
         <View style={styles.massEditContainer}>
           <TouchableOpacity
-            style={styles.massEditButton}
+            style={[styles.massEditButton, styles.metadataButton]}
             onPress={handleMassEditPlaylist}
           >
-            <Text style={styles.massEditButtonText}>Mass Edit Playlist</Text>
+            <Text style={styles.metadataButtonText}>Mass Edit Playlist</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -471,209 +471,6 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  uploadButtonText: {
-    color: '#fff',
-    marginLeft: 8,
-    fontSize: 16,
-  },
-  searchContainer: {
-    padding: 16,
-    backgroundColor: '#f8f8f8',
-  },
-  searchInput: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  previewContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  previewCount: {
-    color: '#666',
-  },
-  previewItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  previewDetails: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  previewArtist: {
-    fontSize: 14,
-    color: '#666',
-  },
-  previewAlbum: {
-    fontSize: 14,
-    color: '#666',
-  },
-  previewTrackInfo: {
-    fontSize: 14,
-    color: '#666',
-  },
-  previewGenre: {
-    fontSize: 14,
-    color: '#666',
-  },
-  metadataPreview: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 4,
-  },
-  metadataLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  metadataValue: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '500',
-  },
-  songItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  songSelected: {
-    backgroundColor: '#f0f8ff',
-  },
-  labelingContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  mainContent: {
-    flex: 1,
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  songItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  albumArt: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-  },
-  songDetails: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  songTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  artistName: {
-    fontSize: 14,
-    color: '#666',
-  },
-  editButton: {
-    backgroundColor: '#007AFF',
-    padding: 8,
-    borderRadius: 4,
-  },
-  playlist: {
-    marginBottom: 16,
-  },
-  playlistHeader: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  playlistName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  playlistSongs: {
-    backgroundColor: '#f8f8f8',
-  },
-  songCheckbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  checkboxSelected: {
-    backgroundColor: '#007AFF',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginHorizontal: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  massEditContainer: {
-    padding: 16,
-  },
-  massEditButton: {
-    backgroundColor: '#4CAF50',
-    padding: 12,
-    borderRadius: 8,
-  },
-  massEditButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -700,6 +497,35 @@ const styles = StyleSheet.create({
   },
   playlistSelected: {
     backgroundColor: '#f0f8ff',
+  },
+  button: {
+    padding: 12,
+    borderRadius: 20,
+    margin: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  metadataButton: {
+    backgroundColor: '#1DB954',
+  },
+  metadataButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  massEditButton: {
+    padding: 16,
+    borderRadius: 20,
+    margin: 16,
+    alignItems: 'center',
+  },
+  massEditContainer: {
+    padding: 16,
   },
 });
 
