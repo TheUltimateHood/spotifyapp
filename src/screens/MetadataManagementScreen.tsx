@@ -59,12 +59,14 @@ interface PlaylistWithSelection {
 }
 
 type ManagementStep = 
+  | 'initial-choice'  // New initial step
   | 'upload'
   | 'preview'
   | 'choose-method'
   | 'auto-label'
-  | 'manual-edit'
-  | 'mass-edit'
+  | 'manual-edit-choice'
+  | 'manual-edit-single'
+  | 'manual-edit-mass'
   | 'post-auto-edit';
 
 interface MetadataManagementScreenProps {
@@ -92,7 +94,7 @@ interface SpotifyMetadata {
 const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation }) => {
   const { tracks, playlists, updateTrack, createPlaylist } = useMusicContext();
 
-  const [currentStep, setCurrentStep] = useState<ManagementStep>('upload');
+  const [currentStep, setCurrentStep] = useState<ManagementStep>('initial-choice');
   const [uploadedMetadata, setUploadedMetadata] = useState<MetadataTrack[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<'auto' | 'manual' | null>(null);
   const [playlistsWithSelection, setPlaylistsWithSelection] = useState<PlaylistWithSelection[]>([]);
@@ -127,42 +129,67 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInput.accept = '.json,.txt,.csv,text/plain,application/json,text/csv,*';
+      
+      // Reset the input value to allow selecting the same file again
+      fileInput.value = '';
+      
       fileInput.onchange = async (e: Event) => {
         const target = e.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) return;
 
         const file = target.files[0];
-        const text = await file.text();
-
+        console.log('Selected file:', file.name, 'size:', file.size, 'type:', file.type);
+        
         try {
+          const text = await file.text();
+          console.log('File content loaded, length:', text.length);
+          
           let metadata: any;
           if (file.name.endsWith('.json')) {
             console.log('Parsing JSON file...');
             const parsedData = JSON.parse(text);
-            console.log('Parsed JSON data:', parsedData);
+            console.log('Parsed JSON data type:', typeof parsedData);
             
             // Extract tracks from Spotify-style metadata
             const spotifyTracks = extractSpotifyTracks(parsedData);
             console.log('Extracted Spotify tracks:', spotifyTracks.length);
             
             if (spotifyTracks.length > 0) {
-              metadata = spotifyTracks.map(spotifyTrack => ({
-                id: spotifyTrack.id,
-                title: spotifyTrack.name,
-                artist: spotifyTrack.artists.map(artist => artist.name).join(', '),
-                album: spotifyTrack.album.name,
-                albumArt: spotifyTrack.album.images?.[0]?.url,
-                duration: spotifyTrack.duration_ms ? `${Math.floor(spotifyTrack.duration_ms / 60000)}:${Math.floor((spotifyTrack.duration_ms % 60000) / 1000).toString().padStart(2, '0')}` : undefined,
-                year: spotifyTrack.album.release_date ? new Date(spotifyTrack.album.release_date).getFullYear().toString() : undefined,
-                trackNumber: spotifyTrack.track_number,
-              }));
+              metadata = spotifyTracks.map(spotifyTrack => {
+                // Sort images by size (largest first) and take the first one
+                const albumImages = spotifyTrack.album?.images || [];
+                const albumArtUrl = spotifyTrack.album?.images?.[0]?.url;
+                
+                console.log('Processing track:', spotifyTrack.name);
+                console.log('Selected album art URL:', albumArtUrl || 'none');
+                return {
+                  id: spotifyTrack.id || `spotify_${Math.random().toString(36).substr(2, 9)}`,
+                  title: spotifyTrack.name || 'Unknown Track',
+                  artist: spotifyTrack.artists?.map(artist => artist.name).join(', ') || 'Unknown Artist',
+                  album: spotifyTrack.album?.name || 'Unknown Album',
+                  artwork: albumArtUrl, // Using 'artwork' to match WebMusicContext Track interface
+                  albumArt: albumArtUrl, // Also keeping 'albumArt' for backward compatibility
+                  duration: spotifyTrack.duration_ms ? 
+                    `${Math.floor(spotifyTrack.duration_ms / 60000)}:${Math.floor((spotifyTrack.duration_ms % 60000) / 1000).toString().padStart(2, '0')}` : 
+                    '0:00',
+                  durationMs: spotifyTrack.duration_ms || 0,
+                  year: spotifyTrack.album?.release_date ? 
+                    new Date(spotifyTrack.album.release_date).getFullYear().toString() : 
+                    new Date().getFullYear().toString(),
+                  trackNumber: spotifyTrack.track_number || 1,
+                };
+              });
+              console.log('Processed Spotify tracks:', metadata.length);
             } else {
               console.log('No Spotify tracks found, trying direct format...');
               // Try to handle the data as-is if it's already in the right format
               if (Array.isArray(parsedData)) {
                 metadata = parsedData;
+              } else if (typeof parsedData === 'object' && parsedData !== null) {
+                // If it's a single track object, wrap it in an array
+                metadata = [parsedData];
               } else {
-                metadata = [];
+                throw new Error('Unsupported JSON format');
               }
             }
           } else {
@@ -170,15 +197,39 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
             metadata = parseTextMetadata(text);
           }
 
-          console.log('Final metadata:', metadata.length, 'tracks');
+          console.log('Final metadata:', metadata);
+          
+          if (!metadata || metadata.length === 0) {
+            throw new Error('No valid tracks found in the uploaded file');
+          }
+          
           setUploadedMetadata(metadata);
           setCurrentStep('preview');
+          
+          // Show success message
+          Alert.alert(
+            'Success', 
+            `Successfully loaded ${metadata.length} track(s) from ${file.name}`,
+            [{ text: 'OK' }]
+          );
+          
         } catch (error) {
           console.error('Error parsing metadata file:', error);
-          Alert.alert('Error', `Failed to parse metadata file: ${error.message}`);
+          Alert.alert(
+            'Error', 
+            `Failed to parse metadata file: ${error.message || 'Unknown error'}`,
+            [{ text: 'OK' }]
+          );
+        } finally {
+          // Clean up the file input
+          fileInput.value = '';
         }
       };
+      
       fileInput.click();
+    } else {
+      // Mobile implementation would go here
+      Alert.alert('Info', 'File upload is currently only supported on web');
     }
   };
 
@@ -205,36 +256,78 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const extractSpotifyTracks = (metadata: SpotifyMetadata): SpotifyTrack[] => {
-    console.log('Extracting tracks from metadata:', metadata);
+    console.log('Extracting tracks from metadata');
+    // Log just the structure without the full content to avoid huge logs
     console.log('Metadata type:', typeof metadata);
     console.log('Metadata keys:', Object.keys(metadata));
     
-    // Handle different Spotify API response formats
-    if (metadata.tracks?.items) {
-      console.log('Found tracks.items format, length:', metadata.tracks.items.length);
-      return metadata.tracks.items;
+    // Log a sample track if available
+    if (metadata.tracks?.items?.[0]) {
+      const sampleTrack = metadata.tracks.items[0];
+      console.log('Sample track:', {
+        name: sampleTrack.name,
+        album: sampleTrack.album?.name,
+        images: sampleTrack.album?.images?.map(img => ({
+          width: img.width,
+          height: img.height,
+          url: img.url ? `${img.url.substring(0, 30)}...` : 'none'
+        }))
+      });
     }
-    if (metadata.tracks && Array.isArray(metadata.tracks)) {
-      console.log('Found tracks array format, length:', metadata.tracks.length);
-      console.log('First track sample:', metadata.tracks[0]);
-      return metadata.tracks;
-    }
-    if (metadata.items) {
-      console.log('Found items format, length:', metadata.items.length);
-      return metadata.items;
-    }
+    
+    // Handle direct track array
     if (Array.isArray(metadata)) {
       console.log('Found root array format, length:', metadata.length);
       return metadata;
     }
 
-    // Look for tracks in any property
+    // Handle playlist with tracks.items
+    if (metadata.tracks?.items) {
+      console.log('Found tracks.items format, length:', metadata.tracks.items.length);
+      const items = metadata.tracks.items;
+      // Check if items have a nested track object (playlist format)
+      if (items[0]?.track) {
+        return items.map((item: any) => item.track).filter(Boolean);
+      }
+      return items;
+    }
+
+    // Handle direct tracks array
+    if (metadata.tracks && Array.isArray(metadata.tracks)) {
+      console.log('Found tracks array format, length:', metadata.tracks.length);
+      return metadata.tracks;
+    }
+
+    // Handle items array (could be tracks or playlist items)
+    if (metadata.items) {
+      console.log('Found items format, length:', metadata.items.length);
+      const items = metadata.items;
+      // Check if items have a nested track object (playlist format)
+      if (items[0]?.track) {
+        return items.map((item: any) => item.track).filter(Boolean);
+      }
+      return items;
+    }
+
+    // Look for tracks in any array property
     for (const key in metadata) {
       if (Array.isArray(metadata[key])) {
-        console.log(`Found array in property "${key}" with length:`, metadata[key].length);
-        if (metadata[key][0]?.name) {
-          console.log('Found tracks in property:', key, 'first track:', metadata[key][0]);
-          return metadata[key];
+        const array = metadata[key];
+        console.log(`Found array in property "${key}" with length:`, array.length);
+        
+        if (array.length === 0) continue;
+        
+        const firstItem = array[0];
+        
+        // Handle playlist items with nested track objects
+        if (firstItem?.track) {
+          console.log('Found nested track objects in property:', key);
+          return array.map((item: any) => item.track).filter(Boolean);
+        }
+        // Handle direct track objects
+        else if (firstItem?.name && firstItem?.artists) {
+          console.log('Found direct track objects in property:', key);
+          return array;
         }
       }
     }
@@ -246,16 +339,34 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   const handleAutoLabel = async () => {
     if (!uploadedMetadata) return;
 
+    const tracksToProcess = selectedPlaylist 
+      ? playlists.find(p => p.id === selectedPlaylist)?.tracks || []
+      : selectedTracks.size > 0 
+        ? Array.from(selectedTracks).map(trackId => tracks.find(track => track.id === trackId))
+        : tracks;
+
+    const tracksWithExistingMetadata = tracksToProcess.filter(
+      track => track.artist || track.album || track.genre || track.year
+    );
+
+    if (tracksWithExistingMetadata.length > 0) {
+      Alert.alert(
+        'Overwrite Warning',
+        `This will overwrite existing metadata for ${tracksWithExistingMetadata.length} track(s). Are you sure you want to continue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Continue', onPress: () => proceedWithAutoLabel(tracksToProcess) },
+        ]
+      );
+    } else {
+      proceedWithAutoLabel(tracksToProcess);
+    }
+  };
+
+  const proceedWithAutoLabel = async (tracksToProcess: any[]) => {
     setIsLoading(true);
     try {
       const matches: any[] = [];
-
-      // Get tracks to process based on selection
-      const tracksToProcess = selectedPlaylist 
-        ? playlists.find(p => p.id === selectedPlaylist)?.tracks || []
-        : selectedTracks.size > 0 
-          ? Array.from(selectedTracks).map(trackId => tracks.find(track => track.id === trackId))
-          : tracks;
 
       // Auto-match logic based on title similarity
       tracksToProcess.forEach(track => {
@@ -285,7 +396,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           title: match.metadata.title || match.track.title,
           artist: match.metadata.artist || match.track.artist,
           album: match.metadata.album || match.track.album,
-          artwork: match.metadata.albumArt || match.track.albumArt,
+          artwork: match.metadata.artwork || match.metadata.albumArt || match.track.artwork || match.track.albumArt,
           year: match.metadata.year || match.track.year,
           genre: match.metadata.genre || match.track.genre,
           duration: match.metadata.duration || match.track.duration
@@ -419,25 +530,79 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const applyMassEdit = () => {
-    let updatedCount = 0;
-
+    const tracksToUpdate: any[] = [];
     playlistsWithSelection.forEach(playlist => {
       playlist.selectedTracks.forEach(trackId => {
-        const updates: any = {};
-        if (massEditData.artist) updates.artist = massEditData.artist;
-        if (massEditData.album) updates.album = massEditData.album;
-        if (massEditData.genre) updates.genre = massEditData.genre;
-        if (massEditData.year) updates.year = massEditData.year;
-
-        if (Object.keys(updates).length > 0) {
-          updateTrack(trackId, updates);
-          updatedCount++;
+        const track = playlist.tracks.find(t => t.id === trackId);
+        if (track) {
+          tracksToUpdate.push(track);
         }
       });
     });
 
-    Alert.alert('Mass Edit Complete', `Updated ${updatedCount} tracks.`);
-    setCurrentStep('upload');
+    const tracksWithExistingMetadata = tracksToUpdate.filter(
+      track => track.artist || track.album || track.genre || track.year
+    );
+
+    if (tracksWithExistingMetadata.length > 0) {
+      Alert.alert(
+        'Overwrite Warning',
+        `This will overwrite existing metadata for ${tracksWithExistingMetadata.length} track(s). Are you sure you want to continue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Continue',
+            onPress: () => proceedWithMassEdit(tracksToUpdate),
+          },
+        ]
+      );
+    } else {
+      proceedWithMassEdit(tracksToUpdate);
+    }
+  };
+
+  const proceedWithMassEdit = (tracksToUpdate: any[]) => {
+    let updatedCount = 0;
+
+    tracksToUpdate.forEach(track => {
+      const updates: any = {};
+      if (massEditData.artist) updates.artist = massEditData.artist;
+      if (massEditData.album) updates.album = massEditData.album;
+      if (massEditData.genre) updates.genre = massEditData.genre;
+      if (massEditData.year) updates.year = massEditData.year;
+
+      if (Object.keys(updates).length > 0) {
+        updateTrack(track.id, updates);
+        updatedCount++;
+      }
+    });
+
+    // Reset mass edit form after successful update
+    setMassEditData({
+      artist: '',
+      album: '',
+      genre: '',
+      year: ''
+    });
+
+    // Show success message with options
+    Alert.alert(
+      'Mass Edit Complete', 
+      `Successfully updated ${updatedCount} track${updatedCount !== 1 ? 's' : ''}.`, 
+      [
+        {
+          text: 'Edit More Tracks',
+          onPress: () => {
+            // Stay on the current screen to make more edits
+          }
+        },
+        {
+          text: 'Back to Menu',
+          onPress: () => setCurrentStep('manual-edit-choice'),
+          style: 'cancel'
+        }
+      ]
+    );
   };
 
   const renderUploadStep = () => (
@@ -552,7 +717,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
             if (selectedMethod === 'auto') {
               setCurrentStep('auto-label');
             } else if (selectedMethod === 'manual') {
-              setCurrentStep('manual-edit');
+              setCurrentStep('manual-edit-choice');
             }
           }}
           disabled={!selectedMethod}
@@ -580,13 +745,15 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           }}
           icon={SelectAll}
           style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
         />
 
         <ModernButton
           title="Label Selected Playlists"
-          onPress={() => setCurrentStep('mass-edit')}
+          onPress={() => setCurrentStep('manual-edit-mass')}
           icon={Album}
           style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
         />
       </View>
 
@@ -594,7 +761,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         <ModernButton
           title="Back"
           onPress={() => setCurrentStep('choose-method')}
-          style={styles.backButton}
+          style={styles.backButtonWithText}
         />
       </View>
     </View>
@@ -704,13 +871,51 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       <View style={styles.navigationButtons}>
         <ModernButton
           title="Back"
-          onPress={() => setCurrentStep('auto-label')}
+          onPress={handleBack}
           style={styles.backButton}
         />
         <ModernButton
           title="Apply Mass Edit"
           onPress={applyMassEdit}
           icon={Check}
+          disabled={!playlistsWithSelection.some(playlist => playlist.selectedTracks.size > 0)}
+        />
+      </View>
+    </View>
+  );
+
+  const renderManualEditChoiceStep = () => (
+    <View style={styles.stepContainer}>
+      <ModernCard style={styles.stepCard}>
+        <Text style={styles.stepTitle}>Manual Edit</Text>
+        <Text style={styles.stepDescription}>
+          Choose how you want to edit your metadata.
+        </Text>
+      </ModernCard>
+
+      <View style={styles.selectionOptions}>
+        <ModernButton
+          title="Edit Single Tracks"
+          onPress={() => setCurrentStep('manual-edit-single')}
+          icon={Edit3}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
+
+        <ModernButton
+          title="Mass Edit Playlists"
+          onPress={() => setCurrentStep('manual-edit-mass')}
+          icon={Album}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
+      </View>
+
+      <View style={styles.navigationButtons}>
+        <ModernButton
+          title="Back"
+          onPress={() => setCurrentStep('choose-method')}
+          style={styles.backButtonWithText}
         />
       </View>
     </View>
@@ -841,7 +1046,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       <View style={styles.navigationButtons}>
         <ModernButton
           title="Manual Edit"
-          onPress={() => setCurrentStep('manual-edit')}
+          onPress={() => setCurrentStep('manual-edit-choice')}
           style={styles.backButton}
         />
         <ModernButton
@@ -853,8 +1058,39 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     </View>
   );
 
+  const renderInitialChoiceStep = () => (
+    <View style={styles.stepContainer}>
+      <ModernCard style={styles.stepCard}>
+        <Text style={styles.stepTitle}>Edit Metadata</Text>
+        <Text style={styles.stepDescription}>
+          Choose how you want to edit your metadata
+        </Text>
+      </ModernCard>
+
+      <View style={styles.selectionOptions}>
+        <ModernButton
+          title="Upload Metadata File"
+          onPress={() => setCurrentStep('upload')}
+          icon={Upload}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
+
+        <ModernButton
+          title="Manual Edit"
+          onPress={() => setCurrentStep('manual-edit-choice')}
+          icon={Edit3}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
+      </View>
+    </View>
+  );
+
   const renderCurrentStep = () => {
     switch (currentStep) {
+      case 'initial-choice':
+        return renderInitialChoiceStep();
       case 'upload':
         return renderUploadStep();
       case 'preview':
@@ -863,13 +1099,34 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         return renderChooseMethodStep();
       case 'auto-label':
         return renderAutoLabelStep();
-      case 'manual-edit':
-      case 'post-auto-edit':
+      case 'manual-edit-choice':
+        return renderManualEditChoiceStep();
+      case 'manual-edit-single':
         return renderManualEditStep();
-      case 'mass-edit':
+      case 'manual-edit-mass':
         return renderMassEditStep();
+      case 'post-auto-edit':
+        return renderPostAutoLabel();
       default:
         return renderUploadStep();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === 'initial-choice') {
+      navigation?.navigate('Settings');
+    } else if (currentStep === 'upload') {
+      setCurrentStep('initial-choice');
+    } else if (currentStep === 'preview' || currentStep === 'choose-method') {
+      setCurrentStep('upload');
+    } else if (currentStep === 'auto-label' || currentStep === 'manual-edit-choice') {
+      setCurrentStep('choose-method');
+    } else if (currentStep === 'manual-edit-single' || currentStep === 'manual-edit-mass') {
+      setCurrentStep('manual-edit-choice');
+    } else if (currentStep === 'post-auto-edit') {
+      setCurrentStep('auto-label');
+    } else {
+      navigation?.navigate('Settings');
     }
   };
 
@@ -877,7 +1134,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
-          onPress={() => navigation?.navigate('Settings')}
+          onPress={handleBack}
           style={styles.backButton}
         >
           <X size={24} color="#FFFFFF" />
@@ -885,12 +1142,15 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         <Text style={styles.headerTitle}>Metadata Management</Text>
         <View style={styles.stepIndicator}>
           <Text style={styles.stepText}>
-            {currentStep === 'upload' && 'Step 1: Upload'}
-            {currentStep === 'preview' && 'Step 2: Preview'}
-            {currentStep === 'choose-method' && 'Step 3: Choose Method'}
-            {currentStep === 'auto-label' && 'Step 4: Auto Label'}
-            {(currentStep === 'manual-edit' || currentStep === 'post-auto-edit') && 'Manual Edit'}
-            {currentStep === 'mass-edit' && 'Mass Edit'}
+            {currentStep === 'initial-choice' && 'Choose Action'}
+            {currentStep === 'upload' && 'Upload Metadata'}
+            {currentStep === 'preview' && 'Preview'}
+            {currentStep === 'choose-method' && 'Choose Method'}
+            {currentStep === 'auto-label' && 'Auto Label'}
+            {currentStep === 'manual-edit-choice' && 'Manual Edit'}
+            {currentStep === 'manual-edit-single' && 'Single Track Edit'}
+            {currentStep === 'manual-edit-mass' && 'Mass Edit'}
+            {currentStep === 'post-auto-edit' && 'Review Changes'}
           </Text>
         </View>
       </View>
@@ -904,7 +1164,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#121212',
     padding: 16,
     minHeight: '100vh',
   },
@@ -915,12 +1175,13 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   backButton: {
-    padding: 0,
-    width: 24,
-    height: 24,
+    padding: 8,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: '#1DB954',
+    borderRadius: 20,
   },
   headerTitle: {
     fontSize: 24,
@@ -945,6 +1206,9 @@ const styles = StyleSheet.create({
   },
   stepCard: {
     marginBottom: 16,
+    backgroundColor: '#1DB954',
+    padding: 16,
+    borderRadius: 8,
   },
   stepTitle: {
     fontSize: 20,
@@ -987,7 +1251,10 @@ const styles = StyleSheet.create({
     maxHeight: 400,
   },
   trackPreview: {
-    marginBottom: 8,
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: '#1DB95420',
+    borderRadius: 8,
   },
   trackPreviewSmall: {
     marginBottom: 6,
@@ -1109,7 +1376,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   selectionButton: {
-    backgroundColor: '#1A1A1A',
+    marginBottom: 12,
+    backgroundColor: '#1DB954',
+    borderColor: '#1DB954',
+  },
+  selectionButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  backButtonWithText: {
+    backgroundColor: '#535353',
+    borderColor: '#535353',
+    flex: 1,
   },
   playlistsList: {
     flex: 1,
@@ -1180,7 +1458,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   massEditForm: {
-    marginBottom: 16,
+    marginVertical: 16,
+    padding: 16,
+    backgroundColor: '#1DB95420',
+    borderRadius: 8,
   },
   formTitle: {
     fontSize: 16,
@@ -1189,15 +1470,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   input: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: '#282828',
     color: '#FFFFFF',
-    fontSize: 16,
+    borderRadius: 6,
+    padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#333333',
-    minHeight: 44,
+    borderColor: '#1DB954',
   },
   tracksList: {
     flex: 1,
@@ -1216,12 +1495,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1DB954',
   },
   modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
@@ -1229,6 +1504,11 @@ const styles = StyleSheet.create({
   editModal: {
     width: '90%',
     maxWidth: 400,
+    padding: 20,
+    borderRadius: 12,
+    backgroundColor: '#282828',
+    borderWidth: 1,
+    borderColor: '#1DB954',
   },
   modalTitle: {
     fontSize: 18,
@@ -1240,12 +1520,13 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
     marginTop: 20,
+    gap: 12,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#333333',
+    backgroundColor: '#535353',
+    borderColor: '#535353',
   },
   resultItem: {
     marginBottom: 16,

@@ -10,16 +10,13 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
 import { 
   X, 
   Upload, 
   Search, 
   Tag, 
   Check,
-  Music,
-  User,
-  Image as ImageIcon
+  Music
 } from 'lucide-react';
 
 interface SpotifyTrack {
@@ -61,22 +58,35 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
   const [fileName, setFileName] = useState<string>('');
   const [pendingUpdates, setPendingUpdates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Clean up the file input after upload
+  React.useEffect(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [fileName]);
 
   if (!visible) return null;
 
-  const handleFileUpload = async () => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/json',
-        copyToCacheDirectory: true
-      });
-
-      if (result.type === 'cancel') return;
-
-      const fileContent = await result.readAsStringAsync();
-      const jsonData = JSON.parse(fileContent);
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
       
-      setFileName(result.name);
+      const file = event.target.files[0];
+      const fileName = file.name;
+      
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      
+      const jsonData = JSON.parse(fileContent);
+      setFileName(fileName);
       setMetadataFile(jsonData);
       
       // Auto-detect metadata immediately after upload
@@ -86,17 +96,17 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
       tracks.forEach(track => {
         const normalizedTitle = track.title.toLowerCase()
           .replace(/\s+/g, ' ')
-          .replace(/[\w\s]/g, ' ')
+          .replace(/[^\w\s]/g, '')
           .trim();
 
         const match = spotifyTracks.find(spotifyTrack => {
           const normalizedSpotifyTitle = spotifyTrack.name.toLowerCase()
             .replace(/\s+/g, ' ')
-            .replace(/[\w\s]/g, ' ')
+            .replace(/[^\w\s]/g, '')
             .trim();
           
           return normalizedSpotifyTitle.includes(normalizedTitle) || 
-                 normalizedTitle.includes(normalizedSpotifyTitle);
+                normalizedTitle.includes(normalizedSpotifyTitle);
         });
 
         if (match) {
@@ -111,13 +121,11 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
       });
 
       setPendingUpdates(updates);
-      
-      // Switch to preview tab to show results
       setActiveTab('preview');
-      
-      Alert.alert('Success', `Loaded metadata from ${result.name}\nFound matches for ${updates.length} tracks`);
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to load JSON file');
+      Alert.alert('Success', `Loaded metadata from ${fileName}\nFound matches for ${updates.length} tracks`);
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      Alert.alert('Error', 'Failed to process the JSON file. Please make sure it is a valid Spotify metadata file.');
     }
   };
 
@@ -229,15 +237,14 @@ const MetadataManagementModal: React.FC<MetadataManagementModalProps> = ({
         </Text>
       </TouchableOpacity>
 
-      {Platform.OS === 'web' && (
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          onChange={handleFileUpload}
-          style={{ display: 'none' }}
-        />
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+        key={fileName || 'file-input'}
+      />
 
       {metadataFile && (
         <View style={styles.fileInfo}>

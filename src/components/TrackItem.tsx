@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { Play, Pause, MoreVertical } from 'lucide-react';
+import { Play, Pause, MoreVertical, Disc } from 'lucide-react';
+import { Image } from 'react-native';
 import ContextMenu from './ContextMenu';
 
 // Platform-specific imports
@@ -68,32 +69,45 @@ const TrackItem: React.FC<TrackItemProps> = ({
         }}
         activeOpacity={0.7}
       >
-        <TouchableOpacity
-          style={styles.playButton}
-          onPress={async () => {
-            if (isTrackPlaying) {
-              // If currently playing, pause
-              if (context?.pauseTrack) {
-                await context.pauseTrack();
-              }
-            } else {
-              // If not playing, play the track
-              if (context?.playTrack) {
-                await context.playTrack(track);
-              }
-            }
-            // Call the original onPress if provided
-            if (onPress) {
-              onPress();
-            }
-          }}
-        >
-          {isTrackPlaying ? (
-            <Pause size={16} color="#1db954" />
+        <View style={styles.albumArtContainer}>
+          {track.albumArt || track.artwork ? (
+            <Image
+              source={{ uri: track.albumArt || track.artwork }}
+              style={styles.albumArt}
+              resizeMode="cover"
+            />
           ) : (
-            <Play size={16} color="#1db954" />
+            <View style={styles.albumArtPlaceholder}>
+              <Disc size={24} color="#b3b3b3" />
+            </View>
           )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={async () => {
+              if (isTrackPlaying) {
+                // If currently playing, pause
+                if (context?.pauseTrack) {
+                  await context.pauseTrack();
+                }
+              } else {
+                // If not playing, play the track
+                if (context?.playTrack) {
+                  await context.playTrack(track);
+                }
+              }
+              // Call the original onPress if provided
+              if (onPress) {
+                onPress();
+              }
+            }}
+          >
+            {isTrackPlaying ? (
+              <Pause size={16} color="#1db954" />
+            ) : (
+              <Play size={16} color="#1db954" />
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.trackInfo}>
           <View style={styles.titleRow}>
@@ -150,6 +164,25 @@ const TrackItem: React.FC<TrackItemProps> = ({
 };
 
 const styles = StyleSheet.create({
+  albumArtContainer: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+  albumArt: {
+    width: '100%',
+    height: '100%',
+  },
+  albumArtPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#282828',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -165,17 +198,22 @@ const styles = StyleSheet.create({
     borderLeftColor: '#1db954',
   },
   playButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -16 }, { translateY: -16 }],
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#333',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    opacity: 0,
+    transition: 'opacity 0.2s',
   },
   trackInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 12,
   },
   titleRow: {
     flexDirection: 'row',

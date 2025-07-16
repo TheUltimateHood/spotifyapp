@@ -39,6 +39,7 @@ interface MusicContextType {
   previousTrack: () => Promise<void>;
   removeTrack: (trackId: string) => void;
   clearTracks: () => void;
+  clearAllData: () => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   createPlaylist: (name: string, trackIds: string[]) => void;
@@ -212,6 +213,16 @@ export const WebMusicProvider = ({ children }: MusicProviderProps) => {
     localStorage.removeItem('music_tracks');
   };
 
+  const clearAllData = () => {
+    setTracks([]);
+    setPlaylists([]);
+    setCurrentTrack(null);
+    webAudioPlayer.pause();
+    // Clear all localStorage data
+    localStorage.removeItem('music_tracks');
+    localStorage.removeItem('music_playlists');
+  };
+
   const getNextTrack = () => {
     const queue = playQueue.length > 0 ? playQueue : tracks;
     if (queue.length === 0) return null;
@@ -373,6 +384,7 @@ export const WebMusicProvider = ({ children }: MusicProviderProps) => {
         previousTrack,
         removeTrack,
         clearTracks,
+        clearAllData,
         toggleShuffle,
         toggleRepeat,
         createPlaylist,
