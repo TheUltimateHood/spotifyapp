@@ -103,52 +103,75 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation: navProp }) => {
       setLoading(true);
 
       if (Platform.OS === 'web') {
-        // Web file picker
-        if (!fileInputRef.current) {
-          const input = document.createElement('input');
-          input.type = 'file';
-          input.accept = 'audio/*,video/*,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.mp4,.avi,.mov,.mkv,.webm,.3gp,.wmv,.asf,.amr,.aiff,.opus';
-          input.multiple = true;
-          input.style.display = 'none';
+        // Web file picker - create new input each time for better iOS compatibility
+        const input = document.createElement('input');
+        input.type = 'file';
+        // Simplified accept for better iOS Safari compatibility
+        input.accept = 'audio/*,video/*';
+        input.multiple = true;
+        input.style.position = 'absolute';
+        input.style.visibility = 'hidden';
+        input.style.width = '0';
+        input.style.height = '0';
 
-          input.onchange = async (e: Event) => {
-            const target = e.target as HTMLInputElement;
-            const files = Array.from(target.files || []);
+        const handleFileChange = async (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          const files = Array.from(target.files || []);
 
-            console.log(`Starting to process ${files.length} files...`);
+          if (files.length === 0) {
+            setLoading(false);
+            return;
+          }
 
-            try {
-              const { successful, failed } = await processMultipleAudioFiles(files);
+          console.log(`Starting to process ${files.length} files...`);
 
-              console.log(`Processing complete: ${successful.length} successful, ${failed.length} failed`);
+          try {
+            const { successful, failed } = await processMultipleAudioFiles(files);
 
-              if (successful.length > 0) {
-                addTracks(successful);
-              }
+            console.log(`Processing complete: ${successful.length} successful, ${failed.length} failed`);
 
-              let message = '';
-              if (successful.length > 0) {
-                message += `Added ${successful.length} track(s) to your library`;
-              }
-              if (failed.length > 0) {
-                message += successful.length > 0 ? '\n' : '';
-                message += `Failed to process ${failed.length} file(s): ${failed.map(f => f.file.name).join(', ')}`;
-              }
-
-              Alert.alert(successful.length > 0 ? 'Success' : 'Error', message);
-            } catch (error) {
-              console.error('Error processing files:', error);
-              Alert.alert('Error', 'Failed to process audio files. Please try again.');
-            } finally {
-              setLoading(false);
+            if (successful.length > 0) {
+              addTracks(successful);
             }
-          };
 
-          document.body.appendChild(input);
-          fileInputRef.current = input;
-        }
+            let message = '';
+            if (successful.length > 0) {
+              message += `Added ${successful.length} track(s) to your library`;
+            }
+            if (failed.length > 0) {
+              message += successful.length > 0 ? '\n' : '';
+              message += `Failed to process ${failed.length} file(s): ${failed.map(f => f.file.name).join(', ')}`;
+            }
 
-        fileInputRef.current.click();
+            Alert.alert(successful.length > 0 ? 'Success' : 'Error', message);
+          } catch (error) {
+            console.error('Error processing files:', error);
+            Alert.alert('Error', 'Failed to process audio files. Please try again.');
+          } finally {
+            setLoading(false);
+            // Clean up the input element
+            if (document.body.contains(input)) {
+              document.body.removeChild(input);
+            }
+          }
+        };
+
+        input.addEventListener('change', handleFileChange);
+        
+        // Clean up if user cancels (iOS Safari specific)
+        input.addEventListener('cancel', () => {
+          setLoading(false);
+          if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
+        });
+
+        document.body.appendChild(input);
+        
+        // Use setTimeout for better iOS compatibility
+        setTimeout(() => {
+          input.click();
+        }, 100);
       } else {
         // Native file picker
         const hasPermission = await requestStoragePermission();

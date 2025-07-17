@@ -26,7 +26,25 @@ export const extractAudioFromVideo = async (file: File): Promise<ConvertedTrack>
       // Create audio/video element to get duration and test playability
       const media = new Audio();
       
+      // Set timeout for iOS Safari compatibility
+      const timeout = setTimeout(() => {
+        console.warn(`Timeout loading ${file.name}, proceeding without metadata`);
+        const { format, isVideo } = getFileFormatInfo(file);
+        
+        const track: ConvertedTrack = {
+          id: `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          url: audioUrl,
+          title: file.name.replace(/\.[^/.]+$/, '') || 'Unknown Track',
+          artist: 'Unknown Artist',
+          album: isVideo ? `${format} Video` : 'Unknown Album',
+          duration: 0,
+          file: file,
+        };
+        resolve(track);
+      }, 3000); // Reduced timeout for better UX
+      
       media.onloadedmetadata = () => {
+        clearTimeout(timeout);
         const { format, isVideo } = getFileFormatInfo(file);
         
         const track: ConvertedTrack = {
@@ -42,6 +60,7 @@ export const extractAudioFromVideo = async (file: File): Promise<ConvertedTrack>
       };
       
       media.onerror = (error) => {
+        clearTimeout(timeout);
         console.warn(`Failed to load ${file.name}:`, error);
         // Some formats might not be directly playable, but we'll still try to create a track
         const { format, isVideo } = getFileFormatInfo(file);
@@ -60,6 +79,7 @@ export const extractAudioFromVideo = async (file: File): Promise<ConvertedTrack>
       
       // Set source and load
       media.src = audioUrl;
+      media.preload = 'metadata';
       media.load();
     } catch (error) {
       reject(error);
@@ -98,6 +118,10 @@ export const isSupportedAudioFormat = (file: File): boolean => {
     'video/mkv',       // MKV alternative MIME
     'video/3gpp',      // 3GP
     'video/x-flv',     // FLV
+    // Additional iOS Safari types
+    'audio/*',         // Generic audio
+    'video/*',         // Generic video
+    '',                // Empty MIME type (common on iOS)
   ];
   
   const fileExtension = file.name.toLowerCase().split('.').pop() || '';
@@ -107,6 +131,12 @@ export const isSupportedAudioFormat = (file: File): boolean => {
     // Video extensions
     'mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', '3gp', 'wmv', 'asf'
   ];
+  
+  // On iOS Safari, MIME types are often empty or generic, so rely more on file extensions
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS && supportedExtensions.includes(fileExtension)) {
+    return true;
+  }
   
   return supportedTypes.includes(file.type) || supportedExtensions.includes(fileExtension);
 };
