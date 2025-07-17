@@ -86,8 +86,8 @@ body::before {
 
 /* Metadata button styles */
 .metadata-button {
-  background-color: #1DB954; /* Spotify green */
-  color: #000000; /* Black text */
+  background-color: #1DB954 !important; /* Spotify green */
+  color: #000000 !important; /* Black text */
   border: none;
   border-radius: 20px;
   padding: 8px 16px;
@@ -98,8 +98,8 @@ body::before {
 }
 
 .metadata-button:hover {
-  background-color: #1ed760; /* Lighter green on hover */
-  color: #000000; /* Ensure black text on hover */
+  background-color: #1ed760 !important; /* Lighter green on hover */
+  color: #000000 !important; /* Ensure black text on hover */
   transform: translateY(-1px);
 }
 

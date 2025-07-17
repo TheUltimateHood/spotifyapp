@@ -682,10 +682,10 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           style={[styles.methodOption, selectedMethod === 'auto' && styles.selectedMethod]}
           onPress={() => setSelectedMethod('auto')}
         >
-          <Zap size={24} color="#1DB954" />
+          <Zap size={24} color={selectedMethod === 'auto' ? "#000000" : "#1DB954"} />
           <View style={styles.methodInfo}>
-            <Text style={styles.methodTitle}>Auto Label</Text>
-            <Text style={styles.methodDescription}>
+            <Text style={[styles.methodTitle, selectedMethod === 'auto' && { color: '#000000' }]}>Auto Label</Text>
+            <Text style={[styles.methodDescription, selectedMethod === 'auto' && { color: '#000000', opacity: 0.8 }]}>
               Automatically match metadata to songs based on title similarity
             </Text>
           </View>
@@ -695,10 +695,10 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           style={[styles.methodOption, selectedMethod === 'manual' && styles.selectedMethod]}
           onPress={() => setSelectedMethod('manual')}
         >
-          <Edit3 size={24} color="#1DB954" />
+          <Edit3 size={24} color={selectedMethod === 'manual' ? "#000000" : "#1DB954"} />
           <View style={styles.methodInfo}>
-            <Text style={styles.methodTitle}>Manual Edit</Text>
-            <Text style={styles.methodDescription}>
+            <Text style={[styles.methodTitle, selectedMethod === 'manual' && { color: '#000000' }]}>Manual Edit</Text>
+            <Text style={[styles.methodDescription, selectedMethod === 'manual' && { color: '#000000', opacity: 0.8 }]}>
               Manually edit track metadata with your own data
             </Text>
           </View>
@@ -1213,13 +1213,14 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#000000',
     marginBottom: 8,
   },
   stepDescription: {
     fontSize: 14,
-    color: '#B3B3B3',
+    color: '#000000',
     lineHeight: 20,
+    opacity: 0.8,
   },
   uploadButton: {
     marginTop: 20,
@@ -1253,7 +1254,7 @@ const styles = StyleSheet.create({
   trackPreview: {
     marginBottom: 12,
     padding: 12,
-    backgroundColor: '#1DB95420',
+    backgroundColor: '#282828',
     borderRadius: 8,
   },
   trackPreviewSmall: {
@@ -1345,6 +1346,7 @@ const styles = StyleSheet.create({
   methodCard: {
     padding: 0,
     overflow: 'hidden',
+    backgroundColor: '#282828',
   },
   methodOption: {
     flexDirection: 'row',
@@ -1354,7 +1356,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#333333',
   },
   selectedMethod: {
-    backgroundColor: '#1A4A2E',
+    backgroundColor: '#1DB954',
   },
   methodInfo: {
     marginLeft: 12,
@@ -1377,11 +1379,11 @@ const styles = StyleSheet.create({
   },
   selectionButton: {
     marginBottom: 12,
-    backgroundColor: '#333333',
-    borderColor: '#333333',
+    backgroundColor: '#1DB954',
+    borderColor: '#1DB954',
   },
   selectionButtonText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontWeight: '600',
   },
   backButtonWithText: {
@@ -1460,13 +1462,13 @@ const styles = StyleSheet.create({
   massEditForm: {
     marginVertical: 16,
     padding: 16,
-    backgroundColor: '#1DB95420',
+    backgroundColor: '#1DB954',
     borderRadius: 8,
   },
   formTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#000000',
     marginBottom: 16,
   },
   input: {
