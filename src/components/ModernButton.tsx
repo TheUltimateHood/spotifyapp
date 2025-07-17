@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, Platform, View } from 'react-native';
 
@@ -62,36 +61,70 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#1DB954',
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 25,
-    minHeight: 48,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 120,
+    minHeight: 48, // Improved touch target for mobile
+    ...(Platform.OS === 'web' ? {
+      cursor: 'pointer',
+      userSelect: 'none',
+      boxShadow: '0 3px 10px rgba(29, 185, 84, 0.4)',
+      transition: 'all 0.2s ease',
+    } : {
+      shadowColor: '#1DB954',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.4,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
   },
   secondaryButton: {
-    backgroundColor: '#333333',
-    borderWidth: 1,
-    borderColor: '#555555',
+    backgroundColor: '#333',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 3px 10px rgba(0, 0, 0, 0.25)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      elevation: 3,
+    }),
   },
   dangerButton: {
-    backgroundColor: '#2a1a1a',
-    borderWidth: 1,
-    borderColor: '#ff4444',
+    backgroundColor: '#ff4444',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 3px 10px rgba(255, 68, 68, 0.4)',
+    } : {
+      shadowColor: '#ff4444',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.4,
+      shadowRadius: 6,
+      elevation: 4,
+    }),
   },
   disabledButton: {
-    backgroundColor: '#333333',
-    opacity: 0.5,
+    backgroundColor: '#666',
+    ...(Platform.OS === 'web' ? {
+      cursor: 'not-allowed',
+      boxShadow: 'none',
+    } : {
+      shadowOpacity: 0,
+      elevation: 0,
+    }),
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   icon: {
     marginRight: 8,
   },
   text: {
-    color: '#000000',
+    color: '#000000', // Always black for primary (green) buttons
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -100,10 +133,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   dangerText: {
-    color: '#ff4444',
+    color: '#FFFFFF',
   },
   disabledText: {
-    color: '#666666',
+    color: '#999',
   },
 });
 

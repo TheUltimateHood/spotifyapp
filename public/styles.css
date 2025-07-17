@@ -147,6 +147,92 @@
   border-radius: 4px;
 }
 
+/* Green background cards with black text */
+.green-bg-card,
+.card-green,
+.primary-card,
+.modern-card.green-bg-card {
+  background-color: #1DB954 !important;
+  color: #000000 !important;
+}
+
+.green-bg-card *,
+.card-green *,
+.primary-card *,
+.modern-card.green-bg-card * {
+  color: #000000 !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .modern-card {
+    margin: 8px;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .animated-button {
+    min-height: 48px;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .glass-morphism {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-card {
+    margin: 6px;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .animated-button {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+  
+  .glass-morphism {
+    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  
+  .gradient-text {
+    font-size: 18px;
+  }
+}
+
+/* Touch-friendly enhancements for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .animated-button:hover {
+    transform: none;
+  }
+  
+  .animated-button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .card-hover:hover {
+    transform: none;
+  }
+  
+  .card-hover:active {
+    transform: translateY(-1px);
+    transition: transform 0.1s ease;
+  }
+}
+
 ::-webkit-scrollbar-thumb {
   background: #404040;
   border-radius: 4px;
