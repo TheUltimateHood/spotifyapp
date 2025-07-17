@@ -129,37 +129,37 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
       fileInput.accept = '.json,.txt,.csv,text/plain,application/json,text/csv,*';
-      
+
       // Reset the input value to allow selecting the same file again
       fileInput.value = '';
-      
+
       fileInput.onchange = async (e: Event) => {
         const target = e.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) return;
 
         const file = target.files[0];
         console.log('Selected file:', file.name, 'size:', file.size, 'type:', file.type);
-        
+
         try {
           const text = await file.text();
           console.log('File content loaded, length:', text.length);
-          
+
           let metadata: any;
           if (file.name.endsWith('.json')) {
             console.log('Parsing JSON file...');
             const parsedData = JSON.parse(text);
             console.log('Parsed JSON data type:', typeof parsedData);
-            
+
             // Extract tracks from Spotify-style metadata
             const spotifyTracks = extractSpotifyTracks(parsedData);
             console.log('Extracted Spotify tracks:', spotifyTracks.length);
-            
+
             if (spotifyTracks.length > 0) {
               metadata = spotifyTracks.map(spotifyTrack => {
                 // Sort images by size (largest first) and take the first one
                 const albumImages = spotifyTrack.album?.images || [];
                 const albumArtUrl = spotifyTrack.album?.images?.[0]?.url;
-                
+
                 console.log('Processing track:', spotifyTrack.name);
                 console.log('Selected album art URL:', albumArtUrl || 'none');
                 return {
@@ -198,21 +198,21 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           }
 
           console.log('Final metadata:', metadata);
-          
+
           if (!metadata || metadata.length === 0) {
             throw new Error('No valid tracks found in the uploaded file');
           }
-          
+
           setUploadedMetadata(metadata);
           setCurrentStep('preview');
-          
+
           // Show success message
           Alert.alert(
             'Success', 
             `Successfully loaded ${metadata.length} track(s) from ${file.name}`,
             [{ text: 'OK' }]
           );
-          
+
         } catch (error) {
           console.error('Error parsing metadata file:', error);
           Alert.alert(
@@ -225,7 +225,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           fileInput.value = '';
         }
       };
-      
+
       fileInput.click();
     } else {
       // Mobile implementation would go here
@@ -260,7 +260,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     // Log just the structure without the full content to avoid huge logs
     console.log('Metadata type:', typeof metadata);
     console.log('Metadata keys:', Object.keys(metadata));
-    
+
     // Log a sample track if available
     if (metadata.tracks?.items?.[0]) {
       const sampleTrack = metadata.tracks.items[0];
@@ -274,7 +274,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         }))
       });
     }
-    
+
     // Handle direct track array
     if (Array.isArray(metadata)) {
       console.log('Found root array format, length:', metadata.length);
@@ -314,11 +314,11 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       if (Array.isArray(metadata[key])) {
         const array = metadata[key];
         console.log(`Found array in property "${key}" with length:`, array.length);
-        
+
         if (array.length === 0) continue;
-        
+
         const firstItem = array[0];
-        
+
         // Handle playlist items with nested track objects
         if (firstItem?.track) {
           console.log('Found nested track objects in property:', key);
@@ -1387,8 +1387,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   backButtonWithText: {
-    backgroundColor: '#535353',
-    borderColor: '#535353',
+    backgroundColor: '#282828',
+    borderColor: '#282828',
     flex: 1,
   },
   playlistsList: {
