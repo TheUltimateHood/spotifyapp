@@ -606,9 +606,9 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const renderUploadStep = () => (
-    <ModernCard style={styles.stepCard}>
-      <Text style={styles.stepTitle}>Upload Metadata File</Text>
-      <Text style={styles.stepDescription}>
+    <ModernCard style={styles.uploadStepCard}>
+      <Text style={styles.uploadStepTitle}>Upload Metadata File</Text>
+      <Text style={styles.uploadStepDescription}>
         Upload a JSON, CSV, or TXT file containing track metadata
       </Text>
 
@@ -1262,8 +1262,26 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     opacity: 0.8,
   },
+  uploadStepCard: {
+    marginBottom: 16,
+    backgroundColor: '#282828',
+    padding: 16,
+    borderRadius: 8,
+  },
+  uploadStepTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  uploadStepDescription: {
+    fontSize: 14,
+    color: '#B3B3B3',
+    lineHeight: 20,
+  },
   uploadButton: {
     marginTop: 20,
+    backgroundColor: '#1DB954',
   },
   formatInfo: {
     marginTop: 20,
