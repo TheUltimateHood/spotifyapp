@@ -300,6 +300,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 140 : 120, // Account for navbar
   },
   section: {
     marginBottom: 30,
