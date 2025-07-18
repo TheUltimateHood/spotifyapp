@@ -1135,7 +1135,9 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     } else if (currentStep === 'auto-label') {
       setCurrentStep('choose-method');
     } else if (currentStep === 'manual-edit-choice') {
-      setCurrentStep('choose-method');
+      // If we came from upload flow, go back to initial choice
+      // If we came from choose-method, we should go back to initial choice since manual edit is also available from there
+      setCurrentStep('initial-choice');
     } else if (currentStep === 'manual-edit-single') {
       setCurrentStep('manual-edit-choice');
     } else if (currentStep === 'manual-edit-mass') {
