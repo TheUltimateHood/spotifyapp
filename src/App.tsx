@@ -117,6 +117,7 @@ function App(): JSX.Element {
   const navigation = {
     navigate: (screen: string) => {
       setCurrentScreen(screen as any);
+      setActiveTab(screen);
     },
   };
 

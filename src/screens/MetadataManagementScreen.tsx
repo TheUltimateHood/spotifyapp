@@ -1117,7 +1117,12 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       // Exit the metadata screen entirely and go back to Settings
       if (Platform.OS === 'web') {
         // For web, we need to set the current screen back to Settings
-        window.dispatchEvent(new CustomEvent('navigateToSettings'));
+        if (navigation?.navigate) {
+          navigation.navigate('Settings');
+        } else {
+          // Fallback: try to trigger navigation through window location
+          window.history.back();
+        }
       } else {
         navigation?.navigate('Settings');
       }
@@ -1146,7 +1151,12 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     // Exit the metadata screen entirely
     if (Platform.OS === 'web') {
       // For web, we need to set the current screen back to Settings
-      window.dispatchEvent(new CustomEvent('navigateToSettings'));
+      if (navigation?.navigate) {
+        navigation.navigate('Settings');
+      } else {
+        // Fallback: try to trigger navigation through window location
+        window.history.back();
+      }
     } else {
       navigation?.navigate('Settings');
     }
