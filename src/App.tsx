@@ -120,6 +120,9 @@ function App(): JSX.Element {
       setActiveTab(screen);
       if (screen === 'MetadataManagement' && params?.initialStep) {
         setMetadataInitialStep(params.initialStep);
+      } else {
+        // Reset metadata initial step when navigating away
+        setMetadataInitialStep(undefined);
       }
     },
   };

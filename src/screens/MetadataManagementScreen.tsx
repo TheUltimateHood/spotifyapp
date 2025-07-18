@@ -1116,16 +1116,8 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   const handleBack = () => {
     if (currentStep === 'initial-choice') {
       // Exit the metadata screen entirely and go back to Settings
-      if (Platform.OS === 'web') {
-        // For web, we need to set the current screen back to Settings
-        if (navigation?.navigate) {
-          navigation.navigate('Settings');
-        } else {
-          // Fallback: try to trigger navigation through window location
-          window.history.back();
-        }
-      } else {
-        navigation?.navigate('Settings');
+      if (navigation?.navigate) {
+        navigation.navigate('Settings');
       }
     } else if (currentStep === 'upload') {
       setCurrentStep('initial-choice');
@@ -1136,9 +1128,15 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     } else if (currentStep === 'auto-label') {
       setCurrentStep('choose-method');
     } else if (currentStep === 'manual-edit-choice') {
-      // If we came from upload flow, go back to initial choice
-      // If we came from choose-method, we should go back to initial choice since manual edit is also available from there
-      setCurrentStep('initial-choice');
+      // If we started at manual-edit-choice (came from Settings), go back to Settings
+      // Otherwise go back to initial-choice
+      if (initialStep === 'manual-edit-choice') {
+        if (navigation?.navigate) {
+          navigation.navigate('Settings');
+        }
+      } else {
+        setCurrentStep('initial-choice');
+      }
     } else if (currentStep === 'manual-edit-single') {
       setCurrentStep('manual-edit-choice');
     } else if (currentStep === 'manual-edit-mass') {
@@ -1151,17 +1149,9 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const handleExit = () => {
-    // Exit the metadata screen entirely
-    if (Platform.OS === 'web') {
-      // For web, we need to set the current screen back to Settings
-      if (navigation?.navigate) {
-        navigation.navigate('Settings');
-      } else {
-        // Fallback: try to trigger navigation through window location
-        window.history.back();
-      }
-    } else {
-      navigation?.navigate('Settings');
+    // Exit the metadata screen entirely and go back to Settings
+    if (navigation?.navigate) {
+      navigation.navigate('Settings');
     }
   };
 
