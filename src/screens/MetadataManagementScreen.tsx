@@ -73,6 +73,7 @@ interface MetadataManagementScreenProps {
   navigation?: {
     navigate: (screen: string) => void;
   };
+  initialStep?: ManagementStep;
 }
 
 interface SpotifyTrack {
@@ -91,10 +92,10 @@ interface SpotifyMetadata {
   [key: string]: any;
 }
 
-const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation }) => {
+const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ navigation, initialStep }) => {
   const { tracks, playlists, updateTrack, createPlaylist } = useMusicContext();
 
-  const [currentStep, setCurrentStep] = useState<ManagementStep>('initial-choice');
+  const [currentStep, setCurrentStep] = useState<ManagementStep>(initialStep || 'initial-choice');
   const [uploadedMetadata, setUploadedMetadata] = useState<MetadataTrack[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<'auto' | 'manual' | null>(null);
   const [playlistsWithSelection, setPlaylistsWithSelection] = useState<PlaylistWithSelection[]>([]);

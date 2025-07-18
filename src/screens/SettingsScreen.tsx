@@ -213,7 +213,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
 
           <TouchableOpacity 
             style={styles.settingItem} 
-            onPress={() => navigation.navigate('MetadataManagement')}
+            onPress={() => navigation.navigate('MetadataManagement', { initialStep: 'manual-edit-choice' })}
           >
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>

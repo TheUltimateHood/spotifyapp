@@ -115,11 +115,16 @@ function App(): JSX.Element {
   };
 
   const navigation = {
-    navigate: (screen: string) => {
+    navigate: (screen: string, params?: any) => {
       setCurrentScreen(screen as any);
       setActiveTab(screen);
+      if (screen === 'MetadataManagement' && params?.initialStep) {
+        setMetadataInitialStep(params.initialStep);
+      }
     },
   };
+
+  const [metadataInitialStep, setMetadataInitialStep] = useState<string | undefined>(undefined);
 
   const renderCurrentScreen = () => {
     switch (activeTab) {
@@ -179,7 +184,7 @@ function App(): JSX.Element {
             {currentScreen === 'Playlists' && <PlaylistsScreen navigation={navigation} />}
             {currentScreen === 'Search' && <SearchScreen />}
             {currentScreen === 'Settings' && <SettingsScreen navigation={navigation} />}
-            {currentScreen === 'MetadataManagement' && <MetadataManagementScreen navigation={navigation} />}
+            {currentScreen === 'MetadataManagement' && <MetadataManagementScreen navigation={navigation} initialStep={metadataInitialStep as any} />}
           </View>
           <MiniPlayer onPress={() => setShowPlayerModal(true)} />
           <ShuffleRepeatControlsBar />
