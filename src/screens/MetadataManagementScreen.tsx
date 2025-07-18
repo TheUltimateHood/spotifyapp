@@ -1060,9 +1060,9 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 
   const renderInitialChoiceStep = () => (
     <View style={styles.stepContainer}>
-      <ModernCard style={styles.stepCard}>
-        <Text style={styles.stepTitle}>Edit Metadata</Text>
-        <Text style={styles.stepDescription}>
+      <ModernCard variant="dark" style={styles.darkStepCard}>
+        <Text style={styles.darkStepTitle}>Edit Metadata</Text>
+        <Text style={styles.darkStepDescription}>
           Choose how you want to edit your metadata
         </Text>
       </ModernCard>
@@ -1219,6 +1219,24 @@ const styles = StyleSheet.create({
   stepDescription: {
     fontSize: 14,
     color: '#000000',
+    lineHeight: 20,
+    opacity: 0.8,
+  },
+  darkStepCard: {
+    marginBottom: 16,
+    backgroundColor: '#282828',
+    padding: 16,
+    borderRadius: 8,
+  },
+  darkStepTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  darkStepDescription: {
+    fontSize: 14,
+    color: '#FFFFFF',
     lineHeight: 20,
     opacity: 0.8,
   },
