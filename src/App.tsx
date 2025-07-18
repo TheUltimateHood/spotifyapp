@@ -137,15 +137,15 @@ function App(): JSX.Element {
     }
   };
 
-  // Web version with bottom navigation
-  if (Platform.OS === 'web') {
-    const handleTabChange = (tab: string) => {
-      console.log('Tab changed to:', tab);
-      setActiveTab(tab);
-      setCurrentScreen(tab as any);
-    };
+  // Unified app structure for all platforms
+  const handleTabChange = (tab: string) => {
+    console.log('Tab changed to:', tab);
+    setActiveTab(tab);
+    setCurrentScreen(tab as any);
+  };
 
-    return (
+  return (
+    <ErrorBoundary>
       <Provider>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
         <View style={styles.container}>
@@ -170,41 +170,6 @@ function App(): JSX.Element {
           )}
         </View>
       </Provider>
-    );
-  }
-
-  // Native version with same UI as web
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setCurrentScreen(tab as any);
-  };
-
-  return (
-    <ErrorBoundary>
-      <MusicProvider>
-        <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
-        <View style={[styles.container, styles.mobileContainer]}>
-          <View style={[styles.content, styles.mobileContent]}>
-            {currentScreen === 'Home' && <NewHomeScreen onTrackSelect={handleTrackSelect} />}
-            {currentScreen === 'Library' && <LibraryScreen navigation={navigation} />}
-            {currentScreen === 'Playlists' && <PlaylistsScreen navigation={navigation} />}
-            {currentScreen === 'Search' && <SearchScreen />}
-            {currentScreen === 'Settings' && <SettingsScreen navigation={navigation} />}
-            {currentScreen === 'MetadataManagement' && <MetadataManagementScreen navigation={navigation} />}
-          </View>
-          <MiniPlayer onPress={() => setShowPlayerModal(true)} />
-          <ShuffleRepeatControlsBar />
-          <BottomNavigation 
-            activeTab={activeTab} 
-            onTabChange={handleTabChange} 
-          />
-          {showPlayerModal && (
-            <View style={styles.playerModal}>
-              <PlayerScreen navigation={{ goBack: () => setShowPlayerModal(false) }} />
-            </View>
-          )}
-        </View>
-      </MusicProvider>
     </ErrorBoundary>
   );
 }
@@ -219,12 +184,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
+    paddingTop: Platform.OS === 'ios' ? 44 : Platform.OS === 'android' ? 24 : 0,
   },
   content: {
     flex: 1,
-    paddingBottom: Platform.OS === 'ios' ? 120 : 100,
-    minHeight: '100vh',
-    overflowY: 'auto',
+    paddingBottom: Platform.OS === 'ios' ? 140 : 120,
+    minHeight: Platform.OS === 'web' ? '100vh' : undefined,
+    overflowY: Platform.OS === 'web' ? 'auto' : undefined,
     backgroundColor: '#121212',
   },
   playerModal: {
@@ -244,27 +210,6 @@ const styles = StyleSheet.create({
     borderTopColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  mobileContainer: {
-    ...Platform.select({
-      ios: {
-        paddingTop: 44, // Account for status bar on iOS
-      },
-      android: {
-        paddingTop: 24, // Account for status bar on Android
-      },
-    }),
-  },
-  mobileContent: {
-    backgroundColor: '#121212',
-    ...Platform.select({
-      ios: {
-        paddingBottom: 140, // Account for bottom navigation and safe area
-      },
-      android: {
-        paddingBottom: 120, // Account for bottom navigation
-      },
-    }),
   },
 });
 
