@@ -144,6 +144,29 @@ function App(): JSX.Element {
     setCurrentScreen(tab as any);
   };
 
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'currentTrack') {
+          // Handle track changes from storage if needed
+        }
+      };
+
+      const handleNavigateToSettings = () => {
+        setCurrentScreen('Settings');
+        setActiveTab('Settings');
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('navigateToSettings', handleNavigateToSettings);
+
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('navigateToSettings', handleNavigateToSettings);
+      };
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <Provider>

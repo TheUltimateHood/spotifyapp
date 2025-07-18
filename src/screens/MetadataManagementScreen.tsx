@@ -1114,7 +1114,13 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 
   const handleBack = () => {
     if (currentStep === 'initial-choice') {
-      navigation?.navigate('Settings');
+      // Exit the metadata screen entirely and go back to Settings
+      if (Platform.OS === 'web') {
+        // For web, we need to set the current screen back to Settings
+        window.dispatchEvent(new CustomEvent('navigateToSettings'));
+      } else {
+        navigation?.navigate('Settings');
+      }
     } else if (currentStep === 'upload') {
       setCurrentStep('initial-choice');
     } else if (currentStep === 'preview' || currentStep === 'choose-method') {
@@ -1126,6 +1132,16 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     } else if (currentStep === 'post-auto-edit') {
       setCurrentStep('auto-label');
     } else {
+      setCurrentStep('initial-choice');
+    }
+  };
+
+  const handleExit = () => {
+    // Exit the metadata screen entirely
+    if (Platform.OS === 'web') {
+      // For web, we need to set the current screen back to Settings
+      window.dispatchEvent(new CustomEvent('navigateToSettings'));
+    } else {
       navigation?.navigate('Settings');
     }
   };
@@ -1134,7 +1150,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
-          onPress={handleBack}
+          onPress={handleExit}
           style={styles.backButton}
         >
           <X size={24} color="#FFFFFF" />
