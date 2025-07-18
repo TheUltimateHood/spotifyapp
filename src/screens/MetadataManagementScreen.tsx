@@ -1123,11 +1123,17 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       }
     } else if (currentStep === 'upload') {
       setCurrentStep('initial-choice');
-    } else if (currentStep === 'preview' || currentStep === 'choose-method') {
+    } else if (currentStep === 'preview') {
       setCurrentStep('upload');
-    } else if (currentStep === 'auto-label' || currentStep === 'manual-edit-choice') {
+    } else if (currentStep === 'choose-method') {
+      setCurrentStep('preview');
+    } else if (currentStep === 'auto-label') {
       setCurrentStep('choose-method');
-    } else if (currentStep === 'manual-edit-single' || currentStep === 'manual-edit-mass') {
+    } else if (currentStep === 'manual-edit-choice') {
+      setCurrentStep('choose-method');
+    } else if (currentStep === 'manual-edit-single') {
+      setCurrentStep('manual-edit-choice');
+    } else if (currentStep === 'manual-edit-mass') {
       setCurrentStep('manual-edit-choice');
     } else if (currentStep === 'post-auto-edit') {
       setCurrentStep('auto-label');
@@ -1153,7 +1159,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           onPress={handleExit}
           style={styles.backButton}
         >
-          <X size={24} color="#FFFFFF" />
+          <X size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Metadata Management</Text>
         <View style={styles.stepIndicator}>
