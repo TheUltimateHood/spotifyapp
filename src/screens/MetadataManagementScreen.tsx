@@ -1084,7 +1084,96 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           style={styles.selectionButton}
           textStyle={styles.selectionButtonText}
         />
+                <ModernButton
+          title="Import from Spotify"
+          onPress={() => setCurrentStep('spotify-import')}
+          icon={Music}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
       </View>
+    </View>
+  );
+
+  const renderSpotifyImportStep = () => {
+    const [spotifyURL, setSpotifyURL] = useState('');
+
+    const handleImportFromSpotify = async () => {
+      setCurrentStep('spotify-importing');
+      try {
+        const clientId = 'f323de16f6774eaca19b8c975795d917';
+        const clientSecret = '6b78ff4421a447e18ca089f9b7cd08c7';
+
+        // Implement the playlist importer logic here
+        // Pass clientId and clientSecret to the importer function
+        // Replace the following line with your actual import logic
+        // const metadata = await importPlaylistFromSpotify(spotifyURL, clientId, clientSecret);
+
+        // Placeholder metadata for demonstration purposes
+        const metadata = [{
+          id: 'spotify_1',
+          title: 'Sample Track',
+          artist: 'Sample Artist',
+          album: 'Sample Album',
+        }];
+
+        setUploadedMetadata(metadata);
+        setCurrentStep('preview');
+      } catch (error) {
+        console.error('Error importing from Spotify:', error);
+        Alert.alert(
+          'Error',
+          `Failed to import from Spotify: ${error.message || 'Unknown error'}`,
+          [{ text: 'OK' }]
+        );
+        setCurrentStep('initial-choice');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    return (
+      <View style={styles.stepContainer}>
+        <ModernCard style={styles.stepCard}>
+          <Text style={styles.stepTitle}>Import from Spotify</Text>
+          <Text style={styles.stepDescription}>
+            Enter the Spotify playlist URL to import metadata.
+          </Text>
+        </ModernCard>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Spotify Playlist URL"
+          placeholderTextColor="#666"
+          value={spotifyURL}
+          onChangeText={text => setSpotifyURL(text)}
+        />
+
+        <View style={styles.navigationButtons}>
+          <ModernButton
+            title="Back"
+            onPress={() => setCurrentStep('initial-choice')}
+            style={styles.backButton}
+          />
+          <ModernButton
+            title="Import"
+            onPress={handleImportFromSpotify}
+            icon={Upload}
+            disabled={!spotifyURL}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  const renderSpotifyImportingStep = () => (
+    <View style={styles.stepContainer}>
+      <ModernCard style={styles.stepCard}>
+        <Text style={styles.stepTitle}>Importing from Spotify...</Text>
+        <Text style={styles.stepDescription}>
+          Please wait while we import your playlist data.
+        </Text>
+      </ModernCard>
     </View>
   );
 
@@ -1094,6 +1183,10 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         return renderInitialChoiceStep();
       case 'upload':
         return renderUploadStep();
+      case 'spotify-import':
+        return renderSpotifyImportStep();
+      case 'spotify-importing':
+        return renderSpotifyImportingStep();
       case 'preview':
         return renderPreviewStep();
       case 'choose-method':
@@ -1121,7 +1214,10 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
       }
     } else if (currentStep === 'upload') {
       setCurrentStep('initial-choice');
-    } else if (currentStep === 'preview') {
+    } else if (currentStep === 'spotify-import') {
+            setCurrentStep('initial-choice');
+        }
+    else if (currentStep === 'preview') {
       setCurrentStep('upload');
     } else if (currentStep === 'choose-method') {
       setCurrentStep('preview');
@@ -1166,17 +1262,20 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Metadata Management</Text>
         <View style={styles.stepIndicator}>
-          <Text style={styles.stepText}>
-            {currentStep === 'initial-choice' && 'Choose Action'}
-            {currentStep === 'upload' && 'Upload Metadata'}
-            {currentStep === 'preview' && 'Preview'}
-            {currentStep === 'choose-method' && 'Choose Method'}
-            {currentStep === 'auto-label' && 'Auto Label'}
-            {currentStep === 'manual-edit-choice' && 'Manual Edit'}
-            {currentStep === 'manual-edit-single' && 'Single Track Edit'}
-            {currentStep === 'manual-edit-mass' && 'Mass Edit'}
-            {currentStep === 'post-auto-edit' && 'Review Changes'}
-          </Text>
+        <Text style={styles.stepText}>
+          {currentStep === 'initial-choice' && 'Choose Action'}
+          {currentStep === 'upload' && 'Upload Metadata'}
+          {currentStep === 'spotify-import' && 'Spotify Import'}
+          {currentStep === 'spotify-url-input' && 'Enter Spotify URL'}
+          {currentStep === 'spotify-importing' && 'Importing...'}
+          {currentStep === 'preview' && 'Preview'}
+          {currentStep === 'choose-method' && 'Choose Method'}
+          {currentStep === 'auto-label' && 'Auto Label'}
+          {currentStep === 'manual-edit-choice' && 'Manual Edit'}
+          {currentStep === 'manual-edit-single' && 'Single Track Edit'}
+          {currentStep === 'manual-edit-mass' && 'Mass Edit'}
+          {currentStep === 'post-auto-edit' && 'Review Changes'}
+        </Text>
         </View>
       </View>
 

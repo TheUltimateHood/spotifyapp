@@ -143,7 +143,7 @@ export async function importSpotifyPlaylist(
   playlistUrl: string, 
   spotifyClientId: string, 
   spotifyClientSecret: string,
-  youtubeApiKey: string
+  youtubeApiKey?: string
 ): Promise<PlaylistResult> {
   // Extract playlist ID from Spotify URL
   const playlistId = extractSpotifyPlaylistId(playlistUrl);
@@ -165,55 +165,76 @@ export async function importSpotifyPlaylist(
     const tracks: TrackData[] = [];
     const failedDownloads: string[] = [];
 
-    // Search and download each track from YouTube
+    // Process each track from Spotify
     for (const spotifyTrack of playlistData.tracks) {
-      const searchQuery = `${spotifyTrack.name} ${spotifyTrack.artists.join(' ')}`;
-      
       try {
-        console.log(`Searching YouTube for: ${searchQuery}`);
+        console.log(`Processing metadata for: ${spotifyTrack.name}`);
         
-        // Search YouTube for the track
-        const youtubeVideoId = await searchYouTubeForTrack(searchQuery, youtubeApiKey);
-        
-        if (!youtubeVideoId) {
-          failedDownloads.push(`${spotifyTrack.name} - Not found on YouTube`);
-          continue;
-        }
-
-        // Download from YouTube
-        const outputPath = path.join(downloadDir, `${youtubeVideoId}.%(ext)s`);
-        const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${outputPath}" "https://www.youtube.com/watch?v=${youtubeVideoId}"`;
-        
-        await execAsync(command);
-
-        // Find the downloaded file
-        const files = await fs.promises.readdir(downloadDir);
-        const downloadedFile = files.find(file => file.startsWith(youtubeVideoId) && file.endsWith('.mp3'));
-        
-        if (downloadedFile) {
-          const filePath = path.join(downloadDir, downloadedFile);
+        if (youtubeApiKey) {
+          // Full import with YouTube search and download
+          const searchQuery = `${spotifyTrack.name} ${spotifyTrack.artists.join(' ')}`;
           
+          console.log(`Searching YouTube for: ${searchQuery}`);
+          
+          // Search YouTube for the track
+          const youtubeVideoId = await searchYouTubeForTrack(searchQuery, youtubeApiKey);
+          
+          if (!youtubeVideoId) {
+            failedDownloads.push(`${spotifyTrack.name} - Not found on YouTube`);
+            continue;
+          }
+
+          // Download from YouTube
+          const outputPath = path.join(downloadDir, `${youtubeVideoId}.%(ext)s`);
+          const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${outputPath}" "https://www.youtube.com/watch?v=${youtubeVideoId}"`;
+          
+          await execAsync(command);
+
+          // Find the downloaded file
+          const files = await fs.promises.readdir(downloadDir);
+          const downloadedFile = files.find(file => file.startsWith(youtubeVideoId) && file.endsWith('.mp3'));
+          
+          if (downloadedFile) {
+            const filePath = path.join(downloadDir, downloadedFile);
+            
+            tracks.push({
+              title: spotifyTrack.name,
+              artist: spotifyTrack.artists.join(', '),
+              album: spotifyTrack.album,
+              duration: spotifyTrack.duration_ms,
+              filePath: filePath,
+              metadata: {
+                spotifyId: spotifyTrack.id,
+                youtubeVideoId: youtubeVideoId,
+                youtubeUrl: `https://www.youtube.com/watch?v=${youtubeVideoId}`,
+                spotifyUrl: spotifyTrack.external_urls?.spotify,
+                albumArt: spotifyTrack.album_art,
+                popularity: spotifyTrack.popularity,
+                explicit: spotifyTrack.explicit
+              }
+            });
+          } else {
+            failedDownloads.push(`${spotifyTrack.name} - Download completed but file not found`);
+          }
+        } else {
+          // Metadata-only mode
           tracks.push({
             title: spotifyTrack.name,
             artist: spotifyTrack.artists.join(', '),
             album: spotifyTrack.album,
             duration: spotifyTrack.duration_ms,
-            filePath: filePath,
+            filePath: '', // No file path for metadata-only
             metadata: {
               spotifyId: spotifyTrack.id,
-              youtubeVideoId: youtubeVideoId,
-              youtubeUrl: `https://www.youtube.com/watch?v=${youtubeVideoId}`,
               spotifyUrl: spotifyTrack.external_urls?.spotify,
               albumArt: spotifyTrack.album_art,
               popularity: spotifyTrack.popularity,
               explicit: spotifyTrack.explicit
             }
           });
-        } else {
-          failedDownloads.push(`${spotifyTrack.name} - Download completed but file not found`);
         }
       } catch (error) {
-        console.error(`Failed to download ${spotifyTrack.name}:`, error);
+        console.error(`Failed to process ${spotifyTrack.name}:`, error);
         failedDownloads.push(`${spotifyTrack.name} - ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
