@@ -1078,16 +1078,17 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         />
 
         <ModernButton
-          title="Manual Edit"
-          onPress={() => setCurrentStep('manual-edit-choice')}
-          icon={Edit3}
-          style={styles.selectionButton}
-          textStyle={styles.selectionButtonText}
-        />
-                <ModernButton
           title="Import from Spotify"
           onPress={() => setCurrentStep('spotify-import')}
           icon={Music}
+          style={styles.selectionButton}
+          textStyle={styles.selectionButtonText}
+        />
+
+        <ModernButton
+          title="Manual Edit"
+          onPress={() => setCurrentStep('manual-edit-choice')}
+          icon={Edit3}
           style={styles.selectionButton}
           textStyle={styles.selectionButtonText}
         />
@@ -1100,25 +1101,28 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
 
     const handleImportFromSpotify = async () => {
       setCurrentStep('spotify-importing');
+      setIsLoading(true);
+      
       try {
         const clientId = 'f323de16f6774eaca19b8c975795d917';
         const clientSecret = '6b78ff4421a447e18ca089f9b7cd08c7';
 
-        // Implement the playlist importer logic here
-        // Pass clientId and clientSecret to the importer function
-        // Replace the following line with your actual import logic
-        // const metadata = await importPlaylistFromSpotify(spotifyURL, clientId, clientSecret);
+        // Import the playlist importer function
+        const { importPlaylistFromSpotify } = require('../utils/playlistImporter');
+        
+        const metadata = await importPlaylistFromSpotify(spotifyURL, clientId, clientSecret);
 
-        // Placeholder metadata for demonstration purposes
-        const metadata = [{
-          id: 'spotify_1',
-          title: 'Sample Track',
-          artist: 'Sample Artist',
-          album: 'Sample Album',
-        }];
-
-        setUploadedMetadata(metadata);
-        setCurrentStep('preview');
+        if (metadata && metadata.length > 0) {
+          setUploadedMetadata(metadata);
+          setCurrentStep('preview');
+          Alert.alert(
+            'Success',
+            `Successfully imported ${metadata.length} track(s) from Spotify`,
+            [{ text: 'OK' }]
+          );
+        } else {
+          throw new Error('No tracks found in the playlist');
+        }
       } catch (error) {
         console.error('Error importing from Spotify:', error);
         Alert.alert(
@@ -1126,7 +1130,7 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
           `Failed to import from Spotify: ${error.message || 'Unknown error'}`,
           [{ text: 'OK' }]
         );
-        setCurrentStep('initial-choice');
+        setCurrentStep('spotify-import');
       } finally {
         setIsLoading(false);
       }
@@ -1152,14 +1156,14 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
         <View style={styles.navigationButtons}>
           <ModernButton
             title="Back"
-            onPress={() => setCurrentStep('initial-choice')}
+            onPress={handleBack}
             style={styles.backButton}
           />
           <ModernButton
             title="Import"
             onPress={handleImportFromSpotify}
             icon={Upload}
-            disabled={!spotifyURL}
+            disabled={!spotifyURL || isLoading}
           />
         </View>
       </View>
@@ -1207,40 +1211,57 @@ const MetadataManagementScreen: React.FC<MetadataManagementScreenProps> = ({ nav
   };
 
   const handleBack = () => {
-    if (currentStep === 'initial-choice') {
-      // Exit the metadata screen entirely and go back to Settings
-      if (navigation?.navigate) {
-        navigation.navigate('Settings');
-      }
-    } else if (currentStep === 'upload') {
-      setCurrentStep('initial-choice');
-    } else if (currentStep === 'spotify-import') {
-            setCurrentStep('initial-choice');
-        }
-    else if (currentStep === 'preview') {
-      setCurrentStep('upload');
-    } else if (currentStep === 'choose-method') {
-      setCurrentStep('preview');
-    } else if (currentStep === 'auto-label') {
-      setCurrentStep('choose-method');
-    } else if (currentStep === 'manual-edit-choice') {
-      // If we started at manual-edit-choice (came from Settings), go back to Settings
-      // Otherwise go back to initial-choice
-      if (initialStep === 'manual-edit-choice') {
+    switch (currentStep) {
+      case 'initial-choice':
+        // Exit the metadata screen entirely and go back to Settings
         if (navigation?.navigate) {
           navigation.navigate('Settings');
         }
-      } else {
+        break;
+      case 'upload':
         setCurrentStep('initial-choice');
-      }
-    } else if (currentStep === 'manual-edit-single') {
-      setCurrentStep('manual-edit-choice');
-    } else if (currentStep === 'manual-edit-mass') {
-      setCurrentStep('manual-edit-choice');
-    } else if (currentStep === 'post-auto-edit') {
-      setCurrentStep('auto-label');
-    } else {
-      setCurrentStep('initial-choice');
+        break;
+      case 'spotify-import':
+        setCurrentStep('initial-choice');
+        break;
+      case 'spotify-importing':
+        setCurrentStep('spotify-import');
+        break;
+      case 'preview':
+        // Go back to the step that brought us here (upload or spotify-import)
+        // We can track this by checking if we have spotify metadata
+        const hasSpotifyData = uploadedMetadata.some(track => track.id?.startsWith('spotify_'));
+        setCurrentStep(hasSpotifyData ? 'spotify-import' : 'upload');
+        break;
+      case 'choose-method':
+        setCurrentStep('preview');
+        break;
+      case 'auto-label':
+        setCurrentStep('choose-method');
+        break;
+      case 'manual-edit-choice':
+        // If we started at manual-edit-choice (came from Settings), go back to Settings
+        // Otherwise go back to initial-choice
+        if (initialStep === 'manual-edit-choice') {
+          if (navigation?.navigate) {
+            navigation.navigate('Settings');
+          }
+        } else {
+          setCurrentStep('initial-choice');
+        }
+        break;
+      case 'manual-edit-single':
+        setCurrentStep('manual-edit-choice');
+        break;
+      case 'manual-edit-mass':
+        setCurrentStep('manual-edit-choice');
+        break;
+      case 'post-auto-edit':
+        setCurrentStep('auto-label');
+        break;
+      default:
+        setCurrentStep('initial-choice');
+        break;
     }
   };
 
